@@ -2,6 +2,7 @@ import os
 
 from pycrypt.symmetric import AES_CBC, AES_ECB
 from pycrypt.symmetric.aes.core import _AESCore
+from pycrypt.symmetric.aes.modes import AES_CTR
 
 # Known AES test vector (AES-128, NIST/Rijndael single-block)
 # Key:    000102030405060708090a0b0c0d0e0f
@@ -40,5 +41,16 @@ def test_cbc_roundtrip():
     c = AES_CBC(key, iv)
     ct = c.encrypt(msg)
     assert len(ct) % 16 == 0
+    pt = c.decrypt(ct)
+    assert pt == msg
+
+
+def test_ctr_roundtrip():
+    key = V_KEY
+    msg = b"The quick brown fox jumps over the lazy dog"
+    nonce = os.urandom(8)
+    c = AES_CTR(key, nonce)
+    ct = c.encrypt(msg)
+    assert len(ct) == len(msg)
     pt = c.decrypt(ct)
     assert pt == msg
