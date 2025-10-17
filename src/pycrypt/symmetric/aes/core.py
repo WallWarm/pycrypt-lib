@@ -1,21 +1,21 @@
 from pycrypt.utils import xor_bytes
-from pycrypt.symmetric.aes.utils import _SBOX, _INV_SBOX, _RCON, _GF_MUL_TABLES as _GMT
+from pycrypt.symmetric.aes.utils import SBOX, INV_SBOX, RCON, GF_MUL_TABLES as _GMT
 
 
-class _AESCore:
+class AESCore:
     def __init__(self, key: bytes):
         if len(key) not in (16, 24, 32):
             raise ValueError("AES key must be 16, 24, or 32 bytes")
 
-        self.KEY = key
-        self.NK = len(key) // 4
-        self.NR = {4: 10, 6: 12, 8: 14}[self.NK]
-        self.ROUND_KEYS = self._key_expansion()
+        self.KEY: bytes = key
+        self.NK: int = len(key) // 4
+        self.NR: int = {4: 10, 6: 12, 8: 14}[self.NK]
+        self.ROUND_KEYS: list[bytearray] = self._key_expansion()
 
     # --- Encryption ---
 
     def cipher(self, plaintext: bytes | bytearray) -> bytes:
-        if not isinstance(plaintext, (bytes, bytearray)) or len(plaintext) != 16:
+        if len(plaintext) != 16:
             raise ValueError("Plaintext must be 16 bytes.")
 
         state = bytearray(plaintext)
@@ -33,7 +33,7 @@ class _AESCore:
         return bytes(state)
 
     def inv_cipher(self, ciphertext: bytes | bytearray) -> bytes:
-        if not isinstance(ciphertext, (bytes, bytearray)) or len(ciphertext) != 16:
+        if len(ciphertext) != 16:
             raise ValueError("Ciphertext must be 16 bytes.")
 
         state = bytearray(ciphertext)
@@ -53,7 +53,7 @@ class _AESCore:
 
     def _sub_bytes(self, state: bytearray):
         for i in range(16):
-            state[i] = _SBOX[state[i]]
+            state[i] = SBOX[state[i]]
 
     def _shift_rows(self, state: bytearray):
         temp = state.copy()
@@ -83,7 +83,7 @@ class _AESCore:
 
     def inv_sub_bytes(self, state: bytearray):
         for i in range(16):
-            state[i] = _INV_SBOX[state[i]]
+            state[i] = INV_SBOX[state[i]]
 
     def inv_mix_columns(self, state: bytearray):
         for c in range(4):
@@ -106,10 +106,10 @@ class _AESCore:
             temp = bytearray(words[i - 1])
 
             if i % self.NK == 0:
-                temp = bytearray(_SBOX[b] for b in _AESCore._rot_word(temp))
-                temp[0] ^= _RCON[(i // self.NK) - 1]
+                temp = bytearray(SBOX[b] for b in AESCore._rot_word(temp))
+                temp[0] ^= RCON[(i // self.NK) - 1]
             elif self.NK > 6 and i % self.NK == 4:
-                temp = bytearray(_SBOX[temp[j]] for j in range(4))
+                temp = bytearray(SBOX[temp[j]] for j in range(4))
 
             words.append(xor_bytes(words[i - self.NK], temp))
 
@@ -127,7 +127,7 @@ class _AESCore:
     @staticmethod
     def _gf_mul(x: int, y: int) -> int:
         p = 0
-        for i in range(8):
+        for _ in range(8):
             if y & 1:
                 p ^= x
             high_bit_set = x & 0x80
@@ -139,4 +139,4 @@ class _AESCore:
         return p
 
     def __del__(self):
-        self.KEY = b"\x00" * len(self.KEY)
+        self.KEY = b"\x00" * len(self.KEY) # pyright: ignore[reportConstantRedefinition]

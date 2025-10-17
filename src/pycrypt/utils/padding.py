@@ -1,4 +1,4 @@
-class _PKCS7:
+class PKCS7:
     @staticmethod
     def pad(data: bytes, block_size: int = 16) -> bytes:
         if block_size <= 0 or block_size > 255:

@@ -1,8 +1,7 @@
 import os
 
-from pycrypt.symmetric import AES_CBC, AES_ECB
-from pycrypt.symmetric.aes.core import _AESCore
-from pycrypt.symmetric.aes.modes import AES_CTR
+from pycrypt.symmetric import AES_CBC, AES_ECB, AES_CTR
+from pycrypt.symmetric.aes.core import AESCore
 
 # Known AES test vector (AES-128, NIST/Rijndael single-block)
 # Key:    000102030405060708090a0b0c0d0e0f
@@ -13,7 +12,7 @@ V_PT = bytes.fromhex("00112233445566778899aabbccddeeff")
 V_CT = bytes.fromhex("69c4e0d86a7b0430d8cdb78070b4c55a")
 
 def test_aescore_single_block():
-    core = _AESCore(V_KEY)
+    core = AESCore(V_KEY)
     ct = core.cipher(V_PT)
     assert ct == V_CT
     pt = core.inv_cipher(ct)
