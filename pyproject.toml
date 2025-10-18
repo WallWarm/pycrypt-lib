@@ -2,24 +2,25 @@
 name = "pycrypt"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Aravindaksha Balaji", email = "aravindakshabalaji@gmail.com"},
-    {name = "Arnav Guntur", email = "arnavguntur.2009@gmail.com"}
-]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
+authors = [
+    { name = "Aravindaksha Balaji", email = "aravindakshabalaji@gmail.com" },
+    { name = "Arnav Guntur", email = "arnavguntur.2009@gmail.com" },
 ]
-
-[tool.poetry]
-packages = [{include = "pycrypt", from = "src"}]
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.14"
+dependencies = []
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 
 [tool.basedpyright]
 typeCheckingMode = "recommended"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.3,<0.10.0"]
+build-backend = "uv_build"
