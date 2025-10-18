@@ -94,6 +94,7 @@ class AES_CBC(_AESMode):
             plaintext = PKCS7.pad(plaintext)
         else:
             validate_len_multiple("Plaintext length", plaintext)
+            validate_len("iv length", iv, 16)
 
         cipher = self._aes.cipher
         encrypted_blocks = bytearray()
@@ -110,6 +111,7 @@ class AES_CBC(_AESMode):
     @override
     def decrypt(self, ciphertext: bytes, *, iv: bytes, unpad: bool = True) -> bytes:
         validate_len_multiple("Ciphertext length", ciphertext)
+        validate_len("iv length", iv, 16)
 
         inv = self._aes.inv_cipher
         decrypted_blocks = bytearray()
