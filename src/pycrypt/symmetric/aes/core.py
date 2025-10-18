@@ -1,3 +1,5 @@
+from typing import Final
+
 from pycrypt.utils import xor_bytes
 from pycrypt.symmetric.aes.utils import SBOX, INV_SBOX, RCON, GF_MUL_TABLES as _GMT
 
@@ -7,10 +9,10 @@ class AESCore:
         if len(key) not in (16, 24, 32):
             raise ValueError("AES key must be 16, 24, or 32 bytes")
 
-        self.KEY: bytes = key
-        self.NK: int = len(key) // 4
-        self.NR: int = {4: 10, 6: 12, 8: 14}[self.NK]
-        self.ROUND_KEYS: list[bytearray] = self._key_expansion()
+        self.KEY: Final[bytes] = key
+        self.NK: Final[int] = len(key) // 4
+        self.NR: Final[int] = {4: 10, 6: 12, 8: 14}[self.NK]
+        self.ROUND_KEYS: Final[list[bytearray]] = self._key_expansion()
 
     # --- Encryption ---
 
@@ -139,4 +141,4 @@ class AESCore:
         return p
 
     def __del__(self):
-        self.KEY = b"\x00" * len(self.KEY) # pyright: ignore[reportConstantRedefinition]
+        self.KEY = b"\x00" * len(self.KEY)  # pyright: ignore[reportConstantRedefinition, reportAttributeAccessIssue]

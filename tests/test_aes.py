@@ -1,6 +1,6 @@
 import os
 
-from pycrypt.symmetric import AES_CBC, AES_ECB, AES_CTR
+from pycrypt.symmetric import AES_CBC, AES_ECB, AES_CTR, AES_GCM
 from pycrypt.symmetric.aes.core import AESCore
 
 # Known AES test vector (AES-128, NIST/Rijndael single-block)
@@ -48,8 +48,18 @@ def test_ctr_roundtrip():
     key = V_KEY
     msg = b"The quick brown fox jumps over the lazy dog"
     nonce = os.urandom(8)
-    c = AES_CTR(key, nonce)
-    ct = c.encrypt(msg)
+    c = AES_CTR(key)
+    ct = c.encrypt(msg, nonce)
     assert len(ct) == len(msg)
-    pt = c.decrypt(ct)
+    pt = c.decrypt(ct, nonce)
+    assert pt == msg
+
+def test_gcm_roundtrip():
+    key = V_KEY
+    msg = b"The quick brown fox jumps over the lazy dog"
+    nonce = os.urandom(12)
+    c = AES_GCM(key)
+    ct, tag = c.encrypt(nonce, msg)
+    assert len(ct) == len(msg)
+    pt = c.decrypt(nonce, tag, ct)
     assert pt == msg
