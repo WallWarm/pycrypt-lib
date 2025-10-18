@@ -50,3 +50,18 @@ INV_SBOX = (
 
 # fmt: off
 RCON = (0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36)
+
+def pad16(data: bytes) -> bytes:
+    return data + b'\x00' * ((16 - len(data) % 16) % 16)
+
+def inc_counter(counter: bytes, n: int) -> bytes:
+    val = (int.from_bytes(counter, 'big') + n) & ((1 << (len(counter)*8)) - 1)
+    return val.to_bytes(len(counter), 'big')
+
+def validate_len_multiple(name: str, data: bytes, expected: int = 16):
+    if len(data) % expected:
+        raise ValueError(f"{name} must be multiple of {expected} bytes, got {len(data)}")
+
+def validate_len(name: str, data: bytes | bytearray, expected: int):
+    if len(data) != expected:
+        raise ValueError(f"{name} must be {expected} bytes, got {len(data)}")

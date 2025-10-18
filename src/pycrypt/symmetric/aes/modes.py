@@ -1,212 +1,211 @@
+from hmac import compare_digest
 from abc import ABC, abstractmethod
-from typing import Optional, override, ParamSpec, Generic, Final
 
-from pycrypt.utils import PKCS7, xor_bytes, ceildiv
+from typing import Literal, Final, override
+
+from pycrypt.utils import PKCS7, xor_bytes
 from pycrypt.symmetric.aes.core import AESCore
+from pycrypt.symmetric.aes.utils import (
+    pad16,
+    inc_counter,
+    validate_len,
+    validate_len_multiple,
+)
 
 
-P = ParamSpec("P")
-
-
-class _AESMode(ABC, Generic[P]):
+class _AESMode(ABC):
     def __init__(self, key: bytes):
         self._aes: AESCore = AESCore(key)
 
-    @abstractmethod
-    def encrypt(self, plaintext: bytes, *args: P.args, **kwargs: P.kwargs) -> bytes: ...
+    def _ctr(self, data: bytes, initial_counter: bytes) -> bytes:
+        validate_len("initial counter", initial_counter, 16)
+
+        cipher = self._aes.cipher
+        encrypted = bytearray()
+
+        for idx, block in enumerate(self.chunk_blocks(data, fixed_length=False)):
+            keystream = cipher(self._add_to_counter(initial_counter, idx))
+            encrypted.extend(xor_bytes(block, keystream[: len(block)]))
+
+        return bytes(encrypted)
 
     @abstractmethod
-    def decrypt(
-        self, ciphertext: bytes, *args: P.args, **kwargs: P.kwargs
-    ) -> bytes: ...
+    def encrypt(self, *args, **kwargs) -> bytes: ...  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
+
+    @abstractmethod
+    def decrypt(self, *args, **kwargs) -> bytes: ...  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
 
     @staticmethod
     def chunk_blocks(data: bytes, block_size: int = 16, fixed_length: bool = True):
-        if fixed_length and len(data) % block_size != 0:
-            raise ValueError("Data length must be multiple of block size")
+        if fixed_length:
+            validate_len_multiple("Data length", data, block_size)
 
         for i in range(0, len(data), block_size):
             yield data[i : i + block_size]
-    
-    @staticmethod
-    def validate_block_size(data: bytes, block_size: int = 16):
-        if len(data) % block_size != 0:
-            raise ValueError(f"Data length must be multiple of {block_size} bytes.")
 
+    @staticmethod
+    def _add_to_counter(counter: bytes, num: int) -> bytes:
+        counter_int = int.from_bytes(counter, "big") + num
+        return counter_int.to_bytes(len(counter), "big")
 
     @override
     def __repr__(self):
-        return f"{self.__class__.__name__}(key_len={len(self._aes.KEY)}, iv={getattr(self, 'iv', None)})"
+        attrs: list[str] = []
+
+        for name in ("iv", "nonce", "aad"):
+            if hasattr(self, name):
+                attrs.append(f"{name}={getattr(self, name)!r}")
+
+        return f"{self.__class__.__name__}(key_len={len(self._aes.KEY)}, {', '.join(attrs)})"
 
 
-class AES_ECB(_AESMode[bool]):
+class AES_ECB(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
 
     @override
-    def encrypt(self, plaintext: bytes, pad: bool = True) -> bytes:
+    def encrypt(self, plaintext: bytes, *, pad: bool = True) -> bytes:
         if pad:
             plaintext = PKCS7.pad(plaintext)
-        elif len(plaintext) % 16 != 0:
-            raise ValueError("Plaintext length must be multiple of 16 when pad=False")
+        else:
+            validate_len_multiple("Plaintext length", plaintext)
 
-        encrypted = bytearray()
-        for block in self.chunk_blocks(plaintext):
-            encrypted.extend(self._aes.cipher(block))
+        cipher = self._aes.cipher
 
-        return bytes(encrypted)
+        return b"".join(cipher(block) for block in self.chunk_blocks(plaintext))
 
     @override
-    def decrypt(self, ciphertext: bytes, unpad: bool = True) -> bytes:
-        if len(ciphertext) % 16 != 0:
-            raise ValueError("Ciphertext length must be multiple of 16")
+    def decrypt(self, ciphertext: bytes, *, unpad: bool = True) -> bytes:
+        validate_len_multiple("Ciphertext length", ciphertext)
 
-        out = bytearray()
-        for block in self.chunk_blocks(ciphertext):
-            out.extend(self._aes.inv_cipher(block))
+        inv = self._aes.inv_cipher
+        out = b"".join(inv(block) for block in self.chunk_blocks(ciphertext))
 
-        return PKCS7.unpad(bytes(out), 16) if unpad else bytes(out)
+        return PKCS7.unpad(out) if unpad else out
 
 
-class AES_CBC(_AESMode[bool]):
-    def __init__(self, key: bytes, iv: bytes):
+class AES_CBC(_AESMode):
+    def __init__(self, key: bytes):
         super().__init__(key)
-        self.iv: bytes = iv
 
     @override
-    def encrypt(self, plaintext: bytes, pad: bool = True) -> bytes:
+    def encrypt(self, plaintext: bytes, *, iv: bytes, pad: bool = True) -> bytes:
         if pad:
             plaintext = PKCS7.pad(plaintext)
-        elif len(plaintext) % 16 != 0:
-            raise ValueError("Plaintext length must be multiple of 16 when pad=False")
+        else:
+            validate_len_multiple("Plaintext length", plaintext)
 
-        encrypted_blocks: list[bytes] = []
-        prev = self.iv
+        cipher = self._aes.cipher
+        encrypted_blocks = bytearray()
+        prev = iv
+
         for block in self.chunk_blocks(plaintext):
             x = xor_bytes(block, prev)
-            ct = self._aes.cipher(x)
-            encrypted_blocks.append(ct)
+            ct = cipher(x)
+            encrypted_blocks.extend(ct)
             prev = ct
 
-        return b"".join(encrypted_blocks)
+        return bytes(encrypted_blocks)
 
     @override
-    def decrypt(self, ciphertext: bytes, unpad: bool = True) -> bytes:
-        if len(ciphertext) % 16 != 0:
-            raise ValueError("Ciphertext length must be multiple of 16")
+    def decrypt(self, ciphertext: bytes, *, iv: bytes, unpad: bool = True) -> bytes:
+        validate_len_multiple("Ciphertext length", ciphertext)
 
-        decrypted_blocks: list[bytearray] = []
-        prev = self.iv
+        inv = self._aes.inv_cipher
+        decrypted_blocks = bytearray()
+        prev = iv
+
         for block in self.chunk_blocks(ciphertext):
-            pt = xor_bytes(self._aes.inv_cipher(block), prev)
-            decrypted_blocks.append(pt)
+            pt = xor_bytes(inv(block), prev)
+            decrypted_blocks.extend(pt)
             prev = block
 
-        plaintext = b"".join(decrypted_blocks)
+        plaintext = bytes(decrypted_blocks)
+
         if unpad:
             return PKCS7.unpad(plaintext)
         return plaintext
 
 
-class AES_CTR(_AESMode[bytes]):
+class AES_CTR(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
 
-    def _ctr(self, data: bytes, nonce: bytes) -> bytes:
-        if len(nonce) != 8:
-            raise ValueError("nonce must be 8 bytes long")
-        counter = nonce + bytes.fromhex("00 00 00 00 00 00 00 00")
-        blocks = self.chunk_blocks(data, fixed_length=False)
-        encrypted = bytearray()
-        for idx, block in enumerate(blocks):
-            keystream = self._aes.cipher(self.add_to_counter(counter, idx))
-            encrypted.extend(xor_bytes(block, keystream[: len(block)]))
-        return bytes(encrypted)
+    def _operate(self, data: bytes, nonce: bytes) -> bytes:
+        validate_len("nonce", nonce, 8)
+
+        counter = nonce + (b"\x00" * 8)
+
+        return self._ctr(data, counter)
 
     @override
-    def encrypt(self, plaintext: bytes, nonce: bytes) -> bytes:
-        return self._ctr(plaintext, nonce)
+    def encrypt(self, plaintext: bytes, *, nonce: bytes) -> bytes:
+        return self._operate(plaintext, nonce)
 
     @override
-    def decrypt(self, ciphertext: bytes, nonce: bytes) -> bytes:
-        return self._ctr(ciphertext, nonce)
-
-    @staticmethod
-    def add_to_counter(counter: bytes, num: int):
-        return bytes.fromhex(f"{int.from_bytes(counter) + num:x}")
+    def decrypt(self, ciphertext: bytes, *, nonce: bytes) -> bytes:
+        return self._operate(ciphertext, nonce)
 
 
-class AES_GCM(_AESMode[[bytes, bytes]]):
+class AES_GCM(_AESMode):
+    class GCMAuthenticationError(Exception):
+        pass
+
     _R: Final[int] = 0xE1000000000000000000000000000000
     _MASK128: Final[int] = (1 << 128) - 1
-    _TAGLENGTH: Final[int] = 16
+    _TAG_LENGTH: Final[int] = 16
 
     def __init__(self, key: bytes):
         super().__init__(key)
-        self.H: Final[bytes] = self._aes.cipher(b"\x00" * 16)
+        self._H_int: Final[int] = int.from_bytes(self._aes.cipher(b"\x00" * 16), "big")
 
-    def _gctr(self, data: bytes, nonce: bytes) -> bytes:
-        if len(nonce) != 16:
-            raise ValueError("nonce must be 16 bytes long")
-        blocks = self.chunk_blocks(data, fixed_length=False)
-        encrypted = bytearray()
-        for idx, block in enumerate(blocks):
-            keystream = self._aes.cipher(self._add_to_counter(nonce, idx))
-            encrypted.extend(xor_bytes(block, keystream[: len(block)]))
-        return bytes(encrypted)
+    def _operate(
+        self,
+        data: bytes,
+        nonce: bytes,
+        aad: bytes = b"",
+        mode: Literal["encrypt", "decrypt"] = "encrypt",
+    ) -> tuple[bytes, bytes]:
+        validate_len("nonce", nonce, 12)
+
+        precounter = nonce + b"\x00\x00\x00\x01"
+        operated = self._ctr(data, inc_counter(precounter, 32))
+
+        if mode == "encrypt":
+            cipher = operated
+        else:
+            cipher = data
+
+        hashed_data = self._ghash(
+            pad16(aad)
+            + pad16(cipher)
+            + len(aad).to_bytes(8, "big")
+            + len(cipher).to_bytes(8, "big")
+        )
+        tag = self._ctr(hashed_data, precounter)[: self._TAG_LENGTH]
+        return operated, tag
 
     @override
     def encrypt(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-        nonce: bytes,
-        plaintext: bytes,
-        aad: bytes = b"",
+        self, plaintext: bytes, *, nonce: bytes, aad: bytes = b""
     ) -> tuple[bytes, bytes]:
-        if len(nonce) != 12:
-            raise ValueError("nonce must be 12 bytes long")
-
-        precounter = nonce + b"\x00\x00\x00\x01"
-        encrypted = self._gctr(plaintext, self._inc_s(precounter, 32))
-        pad_cipher = 16 * ceildiv(len(encrypted), 16) - len(encrypted)
-        pad_aad = 16 * ceildiv(len(aad), 16)
-        hashed_data = self._ghash(
-            aad
-            + b"\x00" * pad_aad
-            + encrypted
-            + b"\x00" * pad_cipher
-            + len(aad).to_bytes(8, "big")
-            + len(encrypted).to_bytes(8, "big")
-        )
-        tag = self._gctr(hashed_data, precounter)[: self._TAGLENGTH]
-        return (encrypted, tag)
+        return self._operate(plaintext, nonce, aad)
 
     @override
     def decrypt(
-        self, nonce: bytes, tag: bytes, ciphertext: bytes, aad: bytes = b""
+        self, ciphertext: bytes, *, nonce: bytes, tag: bytes, aad: bytes = b""
     ) -> bytes:
-        if len(tag) != self._TAGLENGTH:
-            raise ValueError("tag must be 16 bytes long")
-        if len(nonce) != 12:
-            raise ValueError("nonce must be 12 bytes long")
-        precounter = nonce + b"\x00\x00\x00\x01"
-        decrypted = self._gctr(ciphertext, self._inc_s(precounter, 32))
-        pad_cipher = 16 * ceildiv(len(ciphertext), 16) - len(ciphertext)
-        pad_aad = 16 * ceildiv(len(aad), 16)
-        hashed_data = self._ghash(
-            aad
-            + b"\x00" * pad_aad
-            + ciphertext
-            + b"\x00" * pad_cipher
-            + len(aad).to_bytes(8, "big")
-            + len(ciphertext).to_bytes(8, "big")
-        )
-        computed_tag = self._gctr(hashed_data, precounter)[: self._TAGLENGTH]
-        if computed_tag != tag:
-            raise AuthenticationError("GCM Authentication tag mismatch.")
-        return decrypted
+        validate_len("tag", tag, self._TAG_LENGTH)
+
+        plaintext, computed_tag = self._operate(ciphertext, nonce, aad, mode="decrypt")
+
+        if not compare_digest(tag, computed_tag):
+            raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch.")
+
+        return plaintext
 
     @staticmethod
-    def _gf_mul_int(x: int, y: int) -> int:
+    def _gf_mul(x: int, y: int) -> int:
         if x >> 128 or y >> 128:
             raise ValueError("Inputs must be 128-bit integers (0 <= value < 2**128)")
 
@@ -219,51 +218,15 @@ class AES_GCM(_AESMode[[bytes, bytes]]):
             v >>= 1
             if lsb:
                 v ^= AES_GCM._R
+
         return z & AES_GCM._MASK128
 
-    @staticmethod
-    def _gf_mul_bytes(x: bytes | bytearray, y: bytes | bytearray) -> bytes:
-        if len(x) != 16 or len(y) != 16:
-            raise ValueError("Both inputs must be exactly 16 bytes long")
-
-        xi = int.from_bytes(x, "big")
-        yi = int.from_bytes(y, "big")
-        zi = AES_GCM._gf_mul_int(xi, yi)
-        return zi.to_bytes(16, "big")
-
-    @staticmethod
-    def _add_to_counter(counter: bytes, num: int) -> bytes:
-        return bytes.fromhex(f"{int.from_bytes(counter) + num:x}")
-
     def _ghash(self, data: bytes) -> bytes:
-        if len(data) % 16 != 0:
-            raise ValueError("Data length must be a multiple of 16 bytes")
+        validate_len_multiple("Data length", data)
 
-        blocks = self.chunk_blocks(data)
-        y0 = b"\x00" * 16
-        for block in blocks:
-            y0 = self._gf_mul_bytes(xor_bytes(y0, block), self.H)
-        return y0
+        y = 0
+        for block in self.chunk_blocks(data):
+            bi = int.from_bytes(block, "big")
+            y = self._gf_mul(y ^ bi, self._H_int)
 
-    @staticmethod
-    def _inc_s(counter: bytes, s: int) -> bytes:
-        if s % 8 != 0:
-            raise ValueError("Increment must be a multiple of 8")
-        if len(counter) * 8 < s:
-            raise ValueError("len(counter) must be >= s bits")
-
-        n_bytes = len(counter)
-        s_bytes = s // 8
-
-        msb = counter[: n_bytes - s_bytes]
-        lsb = counter[-s_bytes:]
-
-        lsb_val = int.from_bytes(lsb, "big")
-        lsb_inc = (lsb_val + 1) % (1 << s)
-        lsb_new = lsb_inc.to_bytes(s_bytes, "big")
-
-        return msb + lsb_new
-
-
-class AuthenticationError(Exception):
-    pass
+        return y.to_bytes(16, "big")

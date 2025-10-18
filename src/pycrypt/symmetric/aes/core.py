@@ -1,7 +1,13 @@
 from typing import Final
 
 from pycrypt.utils import xor_bytes
-from pycrypt.symmetric.aes.utils import SBOX, INV_SBOX, RCON, GF_MUL_TABLES as _GMT
+from pycrypt.symmetric.aes.utils import (
+    validate_len,
+    SBOX,
+    INV_SBOX,
+    RCON,
+    GF_MUL_TABLES as _GMT,
+)
 
 
 class AESCore:
@@ -17,8 +23,7 @@ class AESCore:
     # --- Encryption ---
 
     def cipher(self, plaintext: bytes | bytearray) -> bytes:
-        if len(plaintext) != 16:
-            raise ValueError("Plaintext must be 16 bytes.")
+        validate_len("Plaintext", plaintext, 16)
 
         state = bytearray(plaintext)
 
@@ -35,8 +40,7 @@ class AESCore:
         return bytes(state)
 
     def inv_cipher(self, ciphertext: bytes | bytearray) -> bytes:
-        if len(ciphertext) != 16:
-            raise ValueError("Ciphertext must be 16 bytes.")
+        validate_len("Ciphertext", ciphertext, 16)
 
         state = bytearray(ciphertext)
 
