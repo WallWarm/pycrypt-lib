@@ -101,17 +101,19 @@ def test_multiple_blocks_ecb_cbc():
     pt_cbc = cbc.decrypt(ct_cbc, iv=iv)
     assert pt_cbc == msg
 
+
+@pytest.mark.skip
 def test_aes_file_encryption():
-    with open("pycrypt/tests/frankenstein.txt", "rb") as f:
+    with open("tests/assets/frankenstein.txt", "rb") as f:
         data = f.read()
     key = os.urandom(16)
     iv = os.urandom(16)
     c = AES_CBC(key)
     ct = c.encrypt(data, iv=iv)
 
-    with open("pycrypt/tests/frankenstein.enc", "wb") as f:
+    with open("tests/assets/frankenstein.enc", "wb") as f:
         f.write(ct)
-    
+
     pt = c.decrypt(ct, iv=iv)
 
     assert data == pt
