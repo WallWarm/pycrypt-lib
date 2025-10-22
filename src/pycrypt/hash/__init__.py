@@ -1,3 +1,3 @@
-from .sha.sha import sha256
+from .sha.sha import SHA256
 
-__all__ = ["sha256"]
+__all__ = ["SHA256"]
