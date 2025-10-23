@@ -1,5 +1,6 @@
 import pytest
 from pycrypt.hash import SHA256
+# from pycrypt.hash.sha.variants import SHA256
 
 
 @pytest.mark.parametrize(
@@ -18,5 +19,7 @@ from pycrypt.hash import SHA256
     ],
 )
 def test_sha256_known_vector(message, hash):
-    sha = SHA256(message).hexdigest()
+    sha = SHA256()
+    sha.update(message)
+    sha = sha.hexdigest()
     assert sha == hash
