@@ -1,5 +1,6 @@
-from pycrypt.hash.sha.core import SHA
 from typing import override
+
+from pycrypt.hash.sha.core import SHA
 
 
 class SHA256(SHA):

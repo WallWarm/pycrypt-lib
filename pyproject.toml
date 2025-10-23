@@ -8,7 +8,11 @@ authors = [
     { name = "Arnav Guntur", email = "arnavguntur.2009@gmail.com" },
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "cryptography>=46.0.3",
+    "egcd>=3.0.0",
+    "primefac>=2.0.12",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

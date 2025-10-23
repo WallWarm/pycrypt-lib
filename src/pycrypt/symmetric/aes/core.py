@@ -3,10 +3,10 @@ from typing import Final
 from pycrypt.utils import xor_bytes
 from pycrypt.symmetric.aes.utils import (
     validate_len,
-    SBOX,
+    GF_MUL_TABLES as _GMT,
     INV_SBOX,
     RCON,
-    GF_MUL_TABLES as _GMT,
+    SBOX,
 )
 
 

@@ -1,6 +1,5 @@
 import pytest
 from pycrypt.hash import SHA256
-# from pycrypt.hash.sha.variants import SHA256
 
 
 @pytest.mark.parametrize(
