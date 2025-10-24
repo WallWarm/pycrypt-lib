@@ -4,12 +4,12 @@ import pytest
 from pycrypt.symmetric import AES_CBC, AES_ECB, AES_CTR, AES_GCM
 from pycrypt.symmetric.aes.core import AESCore
 
-# AES-128 test vector
+# --- Known AES-128 test vector ---
 V_KEY = bytes.fromhex("000102030405060708090a0b0c0d0e0f")
 V_PT = bytes.fromhex("00112233445566778899aabbccddeeff")
 V_CT = bytes.fromhex("69c4e0d86a7b0430d8cdb78070b4c55a")
 
-# AES-256 test vector
+# --- AES-256 test vector ---
 V_KEY_256 = bytes.fromhex(
     "603deb1015ca71be2b73aef0857d77811f352c073b6108d72d9810a30914dff4"
 )

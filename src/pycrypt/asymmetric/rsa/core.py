@@ -2,29 +2,45 @@ from typing import Self
 
 from egcd import egcd
 
-from pycrypt.asymmetric.rsa.utils import generate_large_prime, oaep_decode, oaep_encode
+from pycrypt.asymmetric.rsa.utils import (
+    generate_large_prime,
+    oaep_decode,
+    oaep_encode,
+    pss_encode,
+    pss_verify,
+)
+from pycrypt.hash import SHA256
 
 
 class RSAKey:
-    def __init__(self, n: int, e: int, d: int, p: int, q: int) -> None:
+    def __init__(
+        self,
+        n: int,
+        e: int,
+        d: int | None = None,
+        p: int | None = None,
+        q: int | None = None,
+    ) -> None:
         self.n: int = n
         self.e: int = e
-        self.d: int = d
+        self.d: int | None = d
 
-        self.p: int = p
-        self.q: int = q
+        self.p: int | None = p
+        self.q: int | None = q
 
-        qInv, dP, dQ = self._precompute_crt(self.d, self.p, self.q)
+        if self.d is not None and self.p is not None and self.q is not None:
+            qInv, dP, dQ = self._precompute_crt(self.d, self.p, self.q)
+            self.qInv: int = qInv
+            self.dP: int = dP
+            self.dQ: int = dQ
 
-        self.qInv: int = qInv
-        self.dP: int = dP
-        self.dQ: int = dQ
+        self.k = (self.n.bit_length() + 7) // 8
 
-    def raw_encrypt(self, plaintext: int) -> int:
-        return pow(plaintext, self.e, self.n)
+    def primitive_encrypt(self, message: int) -> int:
+        return pow(message, self.e, self.n)
 
-    def raw_decrypt(self, ciphertext: int) -> int:
-        if self.p and self.q and hasattr(self, "dP"):
+    def primitive_decrypt(self, ciphertext: int) -> int:
+        if self.p and self.q and self.dP is not None:
             m1 = pow(ciphertext % self.p, self.dP, self.p)
             m2 = pow(ciphertext % self.q, self.dQ, self.q)
 
@@ -33,34 +49,63 @@ class RSAKey:
 
             return m % self.n
         else:
+            if self.d is None:
+                raise TypeError(
+                    "Private exponent missing: cannot decrypt with public-only key"
+                )
             return pow(ciphertext, self.d, self.n)
 
-    def oaep_encrypt(self, plaintext: bytes, label: bytes = b"") -> bytes:
-        k = (self.n.bit_length() + 7) // 8
+    def primitive_sign(self, message: int) -> int:
+        return self.primitive_decrypt(message)
 
-        em = oaep_encode(plaintext, k, label)
+    def primitive_verify(self, signature: int) -> int:
+        return self.primitive_encrypt(signature)
 
-        m = int.from_bytes(em, "big")
-        c = self.raw_encrypt(m)
+    def oaep_encrypt(self, message: bytes, label: bytes = b"", hash=SHA256) -> bytes:
+        em = oaep_encode(message, self.k, label, hash)
 
-        ciphertext = c.to_bytes(k, "big")
+        m = self.os2ip(em)
+        c = self.primitive_encrypt(m)
+
+        ciphertext = self.i2osp(c, self.k)
 
         return ciphertext
 
-    def oaep_decrypt(self, ciphertext: bytes, label: bytes = b"") -> bytes:
-        k = (self.n.bit_length() + 7) // 8
-
-        if len(ciphertext) != k:
+    def oaep_decrypt(self, ciphertext: bytes, label: bytes = b"", hash=SHA256) -> bytes:
+        if len(ciphertext) != self.k:
             raise ValueError("Decryption Error: ciphertext length mismatch")
 
-        c = int.from_bytes(ciphertext, "big")
-        m = self.raw_decrypt(c)
+        c = self.os2ip(ciphertext)
+        m = self.primitive_decrypt(c)
 
-        em = m.to_bytes(k, "big")
+        em = self.i2osp(m, self.k)
 
-        plaintext = oaep_decode(em, k, label)
+        plaintext = oaep_decode(em, self.k, label, hash)
 
         return plaintext
+
+    def pss_sign(self, message: bytes, slen: int | None = None, hash=SHA256) -> bytes:
+        em = pss_encode(message, self.k - 1, slen, hash)
+
+        m = self.os2ip(em)
+        s = self.primitive_sign(m)
+
+        signature = self.i2osp(s, self.k)
+
+        return signature
+
+    def pss_verify(
+        self, message: bytes, signature: bytes, slen: int | None = None, hash=SHA256
+    ) -> bool:
+        if len(signature) != self.k:
+            return False
+
+        s = self.os2ip(signature)
+        m = self.primitive_verify(s)
+
+        em = self.i2osp(m, self.k)
+
+        return pss_verify(message, em[1:], slen, hash)
 
     @classmethod
     def generate(cls, bits: int = 2048, e: int = 65537) -> Self:
@@ -89,6 +134,14 @@ class RSAKey:
         dP = d % (p - 1)
         dQ = d % (q - 1)
         _, qInv, _ = egcd(q, p)
-        qInv = qInv
+        qInv %= p
 
         return qInv, dP, dQ
+
+    @staticmethod
+    def os2ip(b: bytes) -> int:
+        return int.from_bytes(b, "big")
+
+    @staticmethod
+    def i2osp(x: int, x_len: int) -> bytes:
+        return x.to_bytes(x_len, "big")

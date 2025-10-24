@@ -1,9 +1,85 @@
 from typing import override
 
-from pycrypt.hash.sha.core import SHA
+from pycrypt.hash.sha.core import SHACore
 
 
-class SHA256(SHA):
+class SHA1(SHACore):
+    BLOCK_SIZE: int = 64
+    DIGEST_SIZE: int = 20
+    WORD_SIZE: int = 32
+    _MASK: int = (1 << WORD_SIZE) - 1
+
+    # --- PRIVATE: Hashing Logic ---
+
+    @override
+    def _process_block(self, block: bytes):
+        W = self._schedule_message(block)
+        a, b, c, d, e = self._hash
+
+        for t in range(80):
+            if t <= 19:
+                f = (b & c) | ((~b & self._MASK) & d)
+                k = 0x5A827999
+            elif t <= 39:
+                f = b ^ c ^ d
+                k = 0x6ED9EBA1
+            elif t <= 59:
+                f = (b & c) | (b & d) | (c & d)
+                k = 0x8F1BBCDC
+            else:
+                f = b ^ c ^ d
+                k = 0xCA62C1D6
+
+            temp = (self._rotr(a, -5) + f + e + k + W[t]) & self._MASK
+            e = d
+            d = c
+            c = self._rotr(b, -30)
+            b = a
+            a = temp
+
+        self._hash = [(x + y) & self._MASK for x, y in zip(self._hash, [a, b, c, d, e])]
+
+    @override
+    def _schedule_message(self, block: bytes) -> list[int]:
+        W = [0] * 80
+        for i in range(16):
+            W[i] = int.from_bytes(block[i * 4 : (i + 1) * 4], "big")
+        for i in range(16, 80):
+            W[i] = self._rotl(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1)
+        return W
+
+    # --- PRIVATE: Constants ---
+
+    @override
+    @classmethod
+    def _init_hash(cls) -> list[int]:
+        return [
+            0x67452301,
+            0xEFCDAB89,
+            0x98BADCFE,
+            0x10325476,
+            0xC3D2E1F0,
+        ]
+
+    @override
+    @classmethod
+    def _get_constants(cls) -> list[int]:
+        return []
+
+    # --- PRIVATE: Helper Bitwise Math Functions ---
+
+    @classmethod
+    def _rotr(cls, x: int, n: int, w: int = 32) -> int:
+        n %= w
+        return ((x >> n) | ((x << (w - n)) & cls._MASK)) & cls._MASK
+
+    @classmethod
+    def _rotl(cls, x: int, n: int, w: int = 32) -> int:
+        n %= w
+        return ((x << n) | (x >> (w - n))) & cls._MASK
+
+
+class SHA256(SHACore):
     BLOCK_SIZE: int = 64
     DIGEST_SIZE: int = 32
     WORD_SIZE: int = 32

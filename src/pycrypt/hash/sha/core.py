@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class SHA(ABC):
+class SHACore(ABC):
     BLOCK_SIZE: int
     DIGEST_SIZE: int
     WORD_SIZE: int
