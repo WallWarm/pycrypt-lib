@@ -6,12 +6,34 @@ from primefac import isprime
 
 
 class RSAKey:
-    def __init__(
-        self, n: int, e: int, d: int = None, p: int = None, q: int = None
-    ) -> None:
-        self.n, self.e, self.d, self.p, self.q = n, e, d, p, q
-        if p and q:
-            self._precompute_crt()
+    def __init__(self, n: int, e: int, d: int, p: int, q: int) -> None:
+        self.n: int = n
+        self.e: int = e
+        self.d: int = d
+
+        self.p: int = p
+        self.q: int = q
+
+        qInv, dP, dQ = self._precompute_crt(self.d, self.p, self.q)
+
+        self.qInv: int = qInv
+        self.dP: int = dP
+        self.dQ: int = dQ
+
+    def raw_encrypt(self, m: int) -> int:
+        return pow(m, self.e, self.n)
+
+    def raw_decrypt(self, c: int) -> int:
+        if self.p and self.q and hasattr(self, "dP"):
+            m1 = pow(c % self.p, self.dP, self.p)
+            m2 = pow(c % self.q, self.dQ, self.q)
+
+            h = (m1 - m2) * self.qInv % self.p
+            m = m2 + h * self.q
+
+            return m % self.n
+        else:
+            return pow(c, self.d, self.n)
 
     @classmethod
     def generate(cls, bits: int = 2048, e: int = 65537) -> Self:
@@ -35,30 +57,21 @@ class RSAKey:
 
             return cls(n, e, d, p, q)
 
-    def raw_encrypt(self, m: int) -> int:
-        return pow(m, self.e, self.n)
+    @staticmethod
+    def _precompute_crt(d: int, p: int, q: int) -> tuple[int, int, int]:
+        dP = d % (p - 1)
+        dQ = d % (q - 1)
+        _, qInv, _ = egcd(q, p)
+        qInv = qInv
 
-    def raw_decrypt(self, c: int) -> int:
-        if self.p and self.q and hasattr(self, "dP"):
-            m1 = pow(c % self.p, self.dP, self.p)
-            m2 = pow(c % self.q, self.dQ, self.q)
+        return qInv, dP, dQ
 
-            h = (m1 - m2) * self.qInv % self.p
-            m = m2 + h * self.q
-
-            return m % self.n
-        else:
-            return pow(c, self.d, self.n)
-
-    def _precompute_crt(self):
-        self.dP = self.d % (self.p - 1)
-        self.dQ = self.d % (self.q - 1)
-        _, qInv, _ = egcd(self.q, self.p)
-        self.qInv = qInv
-
-    def _generate_large_prime(bits=1024, attempts=10000):
+    @staticmethod
+    def _generate_large_prime(bits: int = 1024, attempts: int = 10000) -> int:
         for _ in range(attempts):
             candidate = randbits(bits)
             if isprime(candidate):
                 return candidate
-        raise f"Failed to generate prime number of length {bits} in {attempts} attempts."
+        raise TimeoutError(
+            f"Failed to generate prime number of length {bits} in {attempts} attempts."
+        )

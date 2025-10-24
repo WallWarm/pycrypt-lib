@@ -15,27 +15,27 @@ class AESCore:
         if len(key) not in (16, 24, 32):
             raise ValueError("AES key must be 16, 24, or 32 bytes")
 
-        self.KEY: Final[bytes] = key
-        self.NK: Final[int] = len(key) // 4
-        self.NR: Final[int] = {4: 10, 6: 12, 8: 14}[self.NK]
-        self.ROUND_KEYS: Final[list[bytearray]] = self._key_expansion()
+        self._KEY: Final[bytes] = key
+        self._NK: Final[int] = len(key) // 4
+        self._NR: Final[int] = {4: 10, 6: 12, 8: 14}[self._NK]
+        self._ROUND_KEYS: Final[list[bytearray]] = self._key_expansion()
 
-    # --- Encryption ---
+    # --- Encryption / Decryption ---
 
     def cipher(self, plaintext: bytes | bytearray) -> bytes:
         validate_len("Plaintext", plaintext, 16)
 
         state = bytearray(plaintext)
 
-        self._add_round_key(state, self.ROUND_KEYS[0])
-        for round in range(1, self.NR + 1):
+        self._add_round_key(state, self._ROUND_KEYS[0])
+        for round in range(1, self._NR + 1):
             self._sub_bytes(state)
             self._shift_rows(state)
 
-            if round < self.NR:
+            if round < self._NR:
                 self._mix_columns(state)
 
-            self._add_round_key(state, self.ROUND_KEYS[round])
+            self._add_round_key(state, self._ROUND_KEYS[round])
 
         return bytes(state)
 
@@ -44,14 +44,14 @@ class AESCore:
 
         state = bytearray(ciphertext)
 
-        self._add_round_key(state, self.ROUND_KEYS[-1])
-        for round in range(self.NR - 1, -1, -1):
-            self.inv_shift_rows(state)
-            self.inv_sub_bytes(state)
-            self._add_round_key(state, self.ROUND_KEYS[round])
+        self._add_round_key(state, self._ROUND_KEYS[-1])
+        for round in range(self._NR - 1, -1, -1):
+            self._inv_shift_rows(state)
+            self._inv_sub_bytes(state)
+            self._add_round_key(state, self._ROUND_KEYS[round])
 
             if round > 0:
-                self.inv_mix_columns(state)
+                self._inv_mix_columns(state)
 
         return bytes(state)
 
@@ -81,17 +81,17 @@ class AESCore:
 
     # --- PRIVATE: In-Place Inverse Cipher Transformations ---
 
-    def inv_shift_rows(self, state: bytearray):
+    def _inv_shift_rows(self, state: bytearray):
         temp = state.copy()
         for r in range(4):
             for c in range(4):
                 state[4 * c + r] = temp[4 * ((c - r) % 4) + r]
 
-    def inv_sub_bytes(self, state: bytearray):
+    def _inv_sub_bytes(self, state: bytearray):
         for i in range(16):
             state[i] = INV_SBOX[state[i]]
 
-    def inv_mix_columns(self, state: bytearray):
+    def _inv_mix_columns(self, state: bytearray):
         for c in range(4):
             (c0, c1, c2, c3) = [state[4 * c + r] for r in range(4)]
 
@@ -104,45 +104,30 @@ class AESCore:
     # --- PRIVATE: Key Expansion ---
 
     def _key_expansion(self) -> list[bytearray]:
-        key_symbols = list(self.KEY)
+        key_symbols = list(self._KEY)
 
-        words = [bytearray(key_symbols[4 * i : 4 * (i + 1)]) for i in range(self.NK)]
+        words = [bytearray(key_symbols[4 * i : 4 * (i + 1)]) for i in range(self._NK)]
 
-        for i in range(self.NK, 4 * (self.NR + 1)):
+        for i in range(self._NK, 4 * (self._NR + 1)):
             temp = bytearray(words[i - 1])
 
-            if i % self.NK == 0:
+            if i % self._NK == 0:
                 temp = bytearray(SBOX[b] for b in AESCore._rot_word(temp))
-                temp[0] ^= RCON[(i // self.NK) - 1]
-            elif self.NK > 6 and i % self.NK == 4:
+                temp[0] ^= RCON[(i // self._NK) - 1]
+            elif self._NK > 6 and i % self._NK == 4:
                 temp = bytearray(SBOX[temp[j]] for j in range(4))
 
-            words.append(xor_bytes(words[i - self.NK], temp))
+            words.append(xor_bytes(words[i - self._NK], temp))
 
         return [
-            bytearray().join(words[4 * r : 4 * (r + 1)]) for r in range(self.NR + 1)
+            bytearray().join(words[4 * r : 4 * (r + 1)]) for r in range(self._NR + 1)
         ]
 
-    # --- PRIVATE: Helper Functions ---
+    # --- PRIVATE: Helper Function ---
 
     @staticmethod
     def _rot_word(word: bytearray) -> bytearray:
         return bytearray(word[1:] + word[:1])
 
-    # Mathematical Voodoo
-    @staticmethod
-    def _gf_mul(x: int, y: int) -> int:
-        p = 0
-        for _ in range(8):
-            if y & 1:
-                p ^= x
-            high_bit_set = x & 0x80
-            x <<= 1
-            if high_bit_set:
-                x ^= 0x1B
-            x &= 0xFF
-            y >>= 1
-        return p
-
     def __del__(self):
-        self.KEY = b"\x00" * len(self.KEY)  # pyright: ignore[reportConstantRedefinition, reportAttributeAccessIssue]
+        self._KEY = b"\x00" * len(self._KEY)  # pyright: ignore[reportConstantRedefinition, reportAttributeAccessIssue]

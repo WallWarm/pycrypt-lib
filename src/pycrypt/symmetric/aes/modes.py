@@ -15,18 +15,8 @@ from pycrypt.symmetric.aes.utils import (
 class _AESMode(ABC):
     def __init__(self, key: bytes):
         self._aes: AESCore = AESCore(key)
-
-    def _ctr(self, data: bytes, initial_counter: bytes) -> bytes:
-        validate_len("initial counter", initial_counter, 16)
-
-        cipher = self._aes.cipher
-        encrypted = bytearray()
-
-        for idx, block in enumerate(self.chunk_blocks(data, fixed_length=False)):
-            keystream = cipher(self._add_to_counter(initial_counter, idx))
-            encrypted.extend(xor_bytes(block, keystream[: len(block)]))
-
-        return bytes(encrypted)
+        
+    # --- Encryption / Decryption ---
 
     @abstractmethod
     def encrypt(self, *args, **kwargs) -> bytes: ...  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
@@ -34,8 +24,24 @@ class _AESMode(ABC):
     @abstractmethod
     def decrypt(self, *args, **kwargs) -> bytes: ...  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType]
 
+    # --- PRIVATE: Counter Logic for CTR/GCM ---
+
+    def _ctr(self, data: bytes, initial_counter: bytes) -> bytes:
+        validate_len("initial counter", initial_counter, 16)
+
+        cipher = self._aes.cipher
+        encrypted = bytearray()
+
+        for idx, block in enumerate(self._chunk_blocks(data, fixed_length=False)):
+            keystream = cipher(self._add_to_counter(initial_counter, idx))
+            encrypted.extend(xor_bytes(block, keystream[: len(block)]))
+
+        return bytes(encrypted)
+
+    # --- PRIVATE: Helper Functions ---
+
     @staticmethod
-    def chunk_blocks(data: bytes, block_size: int = 16, fixed_length: bool = True):
+    def _chunk_blocks(data: bytes, block_size: int = 16, fixed_length: bool = True):
         if fixed_length:
             validate_len_multiple("Data length", data, block_size)
 
@@ -55,12 +61,14 @@ class _AESMode(ABC):
             if hasattr(self, name):
                 attrs.append(f"{name}={getattr(self, name)!r}")
 
-        return f"{self.__class__.__name__}(key_len={len(self._aes.KEY)}, {', '.join(attrs)})"
+        return f"{self.__class__.__name__}(key_len={len(self._aes._KEY)}, {', '.join(attrs)})"
 
 
 class AES_ECB(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
+        
+    # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, pad: bool = True) -> bytes:
@@ -71,14 +79,14 @@ class AES_ECB(_AESMode):
 
         cipher = self._aes.cipher
 
-        return b"".join(cipher(block) for block in self.chunk_blocks(plaintext))
+        return b"".join(cipher(block) for block in self._chunk_blocks(plaintext))
 
     @override
     def decrypt(self, ciphertext: bytes, *, unpad: bool = True) -> bytes:
         validate_len_multiple("Ciphertext length", ciphertext)
 
         inv = self._aes.inv_cipher
-        out = b"".join(inv(block) for block in self.chunk_blocks(ciphertext))
+        out = b"".join(inv(block) for block in self._chunk_blocks(ciphertext))
 
         return PKCS7.unpad(out) if unpad else out
 
@@ -86,6 +94,8 @@ class AES_ECB(_AESMode):
 class AES_CBC(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
+        
+    # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, iv: bytes, pad: bool = True) -> bytes:
@@ -99,7 +109,7 @@ class AES_CBC(_AESMode):
         encrypted_blocks = bytearray()
         prev = iv
 
-        for block in self.chunk_blocks(plaintext):
+        for block in self._chunk_blocks(plaintext):
             x = xor_bytes(block, prev)
             ct = cipher(x)
             encrypted_blocks.extend(ct)
@@ -116,7 +126,7 @@ class AES_CBC(_AESMode):
         decrypted_blocks = bytearray()
         prev = iv
 
-        for block in self.chunk_blocks(ciphertext):
+        for block in self._chunk_blocks(ciphertext):
             pt = xor_bytes(inv(block), prev)
             decrypted_blocks.extend(pt)
             prev = block
@@ -131,13 +141,8 @@ class AES_CBC(_AESMode):
 class AES_CTR(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
-
-    def _operate(self, data: bytes, nonce: bytes) -> bytes:
-        validate_len("nonce", nonce, 8)
-
-        counter = nonce + (b"\x00" * 8)
-
-        return self._ctr(data, counter)
+        
+    # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, nonce: bytes) -> bytes:
@@ -146,6 +151,15 @@ class AES_CTR(_AESMode):
     @override
     def decrypt(self, ciphertext: bytes, *, nonce: bytes) -> bytes:
         return self._operate(ciphertext, nonce)
+        
+    # --- PRIVATE: Helper Function ---
+
+    def _operate(self, data: bytes, nonce: bytes) -> bytes:
+        validate_len("nonce", nonce, 8)
+
+        counter = nonce + (b"\x00" * 8)
+
+        return self._ctr(data, counter)
 
 
 class AES_GCM(_AESMode):
@@ -158,7 +172,30 @@ class AES_GCM(_AESMode):
 
     def __init__(self, key: bytes):
         super().__init__(key)
-        self._H_int: Final[int] = int.from_bytes(self._aes.cipher(b"\x00" * 16), "big")
+        self._H: Final[int] = int.from_bytes(self._aes.cipher(b"\x00" * 16), "big")
+        
+    # --- Encryption / Decryption ---
+
+    @override
+    def encrypt(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self, plaintext: bytes, *, nonce: bytes, aad: bytes = b""
+    ) -> tuple[bytes, bytes]:
+        return self._operate(plaintext, nonce, aad)
+
+    @override
+    def decrypt(
+        self, ciphertext: bytes, *, nonce: bytes, tag: bytes, aad: bytes = b""
+    ) -> bytes:
+        validate_len("tag", tag, self._TAG_LENGTH)
+
+        plaintext, computed_tag = self._operate(ciphertext, nonce, aad, mode="decrypt")
+
+        if not compare_digest(tag, computed_tag):
+            raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch.")
+
+        return plaintext
+    
+    # --- PRIVATE: Helper Functions ---
 
     def _operate(
         self,
@@ -186,24 +223,15 @@ class AES_GCM(_AESMode):
         tag = self._ctr(hashed_data, precounter)[: self._TAG_LENGTH]
         return operated, tag
 
-    @override
-    def encrypt(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self, plaintext: bytes, *, nonce: bytes, aad: bytes = b""
-    ) -> tuple[bytes, bytes]:
-        return self._operate(plaintext, nonce, aad)
+    def _ghash(self, data: bytes) -> bytes:
+        validate_len_multiple("Data length", data)
 
-    @override
-    def decrypt(
-        self, ciphertext: bytes, *, nonce: bytes, tag: bytes, aad: bytes = b""
-    ) -> bytes:
-        validate_len("tag", tag, self._TAG_LENGTH)
+        y = 0
+        for block in self._chunk_blocks(data):
+            b = int.from_bytes(block, "big")
+            y = self._gf_mul(y ^ b, self._H)
 
-        plaintext, computed_tag = self._operate(ciphertext, nonce, aad, mode="decrypt")
-
-        if not compare_digest(tag, computed_tag):
-            raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch.")
-
-        return plaintext
+        return y.to_bytes(16, "big")
 
     @staticmethod
     def _gf_mul(x: int, y: int) -> int:
@@ -221,13 +249,3 @@ class AES_GCM(_AESMode):
                 v ^= AES_GCM._R
 
         return z & AES_GCM._MASK128
-
-    def _ghash(self, data: bytes) -> bytes:
-        validate_len_multiple("Data length", data)
-
-        y = 0
-        for block in self.chunk_blocks(data):
-            bi = int.from_bytes(block, "big")
-            y = self._gf_mul(y ^ bi, self._H_int)
-
-        return y.to_bytes(16, "big")

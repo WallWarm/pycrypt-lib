@@ -4,10 +4,53 @@ from pycrypt.hash.sha.core import SHA
 
 
 class SHA256(SHA):
-    block_size: int = 64
-    digest_size: int = 32
-    word_size: int = 32
-    MASK: int = (1 << word_size) - 1
+    _BLOCK_SIZE: int = 64
+    _DIGEST_SIZE: int = 32
+    _WORD_SIZE: int = 32
+    _MASK: int = (1 << _WORD_SIZE) - 1
+
+    # --- PRIVATE: Hashing Logic ---
+
+    @override
+    def _process_block(self, block: bytes):
+        K = self._get_constants()
+        W = self._schedule_message(block)
+        a, b, c, d, e, f, g, h = self._hash
+
+        for t in range(64):
+            T1 = (h + self._Sigma_1(e) + self._ch(e, f, g) + K[t] + W[t]) & self._MASK
+            T2 = (self._Sigma_0(a) + self._maj(a, b, c)) & self._MASK
+            h, g, f, e, d, c, b, a = (
+                g,
+                f,
+                e,
+                (d + T1) & self._MASK,
+                c,
+                b,
+                a,
+                (T1 + T2) & self._MASK,
+            )
+
+        self._hash = [
+            (x + y) & self._MASK for x, y in zip(self._hash, [a, b, c, d, e, f, g, h])
+        ]
+
+    @override
+    def _schedule_message(self, block: bytes) -> list[int]:
+        W = [0] * 64
+        for i in range(64):
+            if i < 16:
+                W[i] = int.from_bytes(block[i * 4 : (i + 1) * 4], "big")
+            else:
+                W[i] = (
+                    self._sigma_1(W[i - 2])
+                    + W[i - 7]
+                    + self._sigma_0(W[i - 15])
+                    + W[i - 16]
+                ) & self._MASK
+        return W
+
+    # --- PRIVATE: Constants ---
 
     @override
     @classmethod
@@ -46,76 +89,39 @@ class SHA256(SHA):
                 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
             ]
 
-    @override
-    def _process_block(self, block: bytes):
-        K = self._get_constants()
-        W = self._schedule_message(block)
-        a, b, c, d, e, f, g, h = self._hash
-
-        for t in range(64):
-            T1 = (h + self.Sigma_1(e) + self.ch(e, f, g) + K[t] + W[t]) & self.MASK
-            T2 = (self.Sigma_0(a) + self.maj(a, b, c)) & self.MASK
-            h, g, f, e, d, c, b, a = (
-                g,
-                f,
-                e,
-                (d + T1) & self.MASK,
-                c,
-                b,
-                a,
-                (T1 + T2) & self.MASK,
-            )
-
-        self._hash = [
-            (x + y) & self.MASK for x, y in zip(self._hash, [a, b, c, d, e, f, g, h])
-        ]
-
-    @override
-    def _schedule_message(self, block: bytes) -> list[int]:
-        W = [0] * 64
-        for i in range(64):
-            if i < 16:
-                W[i] = int.from_bytes(block[i * 4 : (i + 1) * 4], "big")
-            else:
-                W[i] = (
-                    self.sigma_1(W[i - 2])
-                    + W[i - 7]
-                    + self.sigma_0(W[i - 15])
-                    + W[i - 16]
-                ) & self.MASK
-        return W
+    # --- PRIVATE: Helper Bitwise Math Functions ---
 
     @classmethod
     def _rotr(cls, x: int, n: int, w: int = 32) -> int:
         n = n % w
-        return (x >> n) | ((x << w - n) & cls.MASK)
+        return (x >> n) | ((x << w - n) & cls._MASK)
 
     @classmethod
     def _shr(cls, x: int, n: int):
         return x >> n
 
     @classmethod
-    def ch(cls, x: int, y: int, z: int):
+    def _ch(cls, x: int, y: int, z: int):
         # Ch(x, y, z) = (x AND y) XOR ((NOT x) AND z)
-        return ((x & y) ^ ((~x & cls.MASK) & z)) & cls.MASK
+        return ((x & y) ^ ((~x & cls._MASK) & z)) & cls._MASK
 
     @classmethod
-    def maj(cls, x: int, y: int, z: int):
+    def _maj(cls, x: int, y: int, z: int):
         # Maj(x, y, z) = (x AND y) XOR (x AND z) XOR (y AND z)
-        return ((x & y) ^ (x & z) ^ (y & z)) & cls.MASK
+        return ((x & y) ^ (x & z) ^ (y & z)) & cls._MASK
 
     @classmethod
-    def Sigma_0(cls, x: int):
-        return (cls._rotr(x, 2) ^ cls._rotr(x, 13) ^ cls._rotr(x, 22)) & cls.MASK
+    def _Sigma_0(cls, x: int):
+        return (cls._rotr(x, 2) ^ cls._rotr(x, 13) ^ cls._rotr(x, 22)) & cls._MASK
 
     @classmethod
-    def Sigma_1(cls, x: int):
-        return (cls._rotr(x, 6) ^ cls._rotr(x, 11) ^ cls._rotr(x, 25)) & cls.MASK
+    def _Sigma_1(cls, x: int):
+        return (cls._rotr(x, 6) ^ cls._rotr(x, 11) ^ cls._rotr(x, 25)) & cls._MASK
 
     @classmethod
-    def sigma_0(cls, x: int):
-        return (cls._rotr(x, 7) ^ cls._rotr(x, 18) ^ cls._shr(x, 3)) & cls.MASK
+    def _sigma_0(cls, x: int):
+        return (cls._rotr(x, 7) ^ cls._rotr(x, 18) ^ cls._shr(x, 3)) & cls._MASK
 
     @classmethod
-    def sigma_1(cls, x: int):
-        return (cls._rotr(x, 17) ^ cls._rotr(x, 19) ^ cls._shr(x, 10)) & cls.MASK
+    def _sigma_1(cls, x: int):
+        return (cls._rotr(x, 17) ^ cls._rotr(x, 19) ^ cls._shr(x, 10)) & cls._MASK
