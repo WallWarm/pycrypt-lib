@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 
 class SHA(ABC):
-    _BLOCK_SIZE: int
-    _DIGEST_SIZE: int
-    _WORD_SIZE: int
+    BLOCK_SIZE: int
+    DIGEST_SIZE: int
+    WORD_SIZE: int
     _MASK: int
 
     def __init__(self, data: bytes | None = None):
@@ -25,7 +25,7 @@ class SHA(ABC):
             self._process_block(block)
 
         digest_bytes = b"".join(H.to_bytes(4, "big") for H in self._hash)[
-            : self._DIGEST_SIZE
+            : self.DIGEST_SIZE
         ]
         self._hash, self._buffer, self._message_byte_len = state
 
@@ -41,9 +41,9 @@ class SHA(ABC):
         self._buffer += data
         self._message_byte_len += len(data)
 
-        while len(self._buffer) >= self._BLOCK_SIZE:
-            block = self._buffer[: self._BLOCK_SIZE]
-            self._buffer = self._buffer[self._BLOCK_SIZE :]
+        while len(self._buffer) >= self.BLOCK_SIZE:
+            block = self._buffer[: self.BLOCK_SIZE]
+            self._buffer = self._buffer[self.BLOCK_SIZE :]
             self._process_block(block)
 
     def reset(self) -> None:
@@ -57,8 +57,8 @@ class SHA(ABC):
         message_bit_len = self._message_byte_len * 8
         buffer = self._buffer
         padding_len = (
-            self._BLOCK_SIZE - ((len(buffer) + 9) % self._BLOCK_SIZE)
-        ) % self._BLOCK_SIZE
+            self.BLOCK_SIZE - ((len(buffer) + 9) % self.BLOCK_SIZE)
+        ) % self.BLOCK_SIZE
         padding = b"\x80" + b"\x00" * padding_len
         length = message_bit_len.to_bytes(8, "big")
         return buffer + padding + length
@@ -71,7 +71,7 @@ class SHA(ABC):
 
     @classmethod
     def _parse_message(cls, message: bytes):
-        for i in range(0, len(message), cls._BLOCK_SIZE):
+        for i in range(0, len(message), cls.BLOCK_SIZE):
             yield message[i : i + 64]
 
     # --- PRIVATE: Constants ---

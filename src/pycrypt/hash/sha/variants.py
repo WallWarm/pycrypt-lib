@@ -4,10 +4,10 @@ from pycrypt.hash.sha.core import SHA
 
 
 class SHA256(SHA):
-    _BLOCK_SIZE: int = 64
-    _DIGEST_SIZE: int = 32
-    _WORD_SIZE: int = 32
-    _MASK: int = (1 << _WORD_SIZE) - 1
+    BLOCK_SIZE: int = 64
+    DIGEST_SIZE: int = 32
+    WORD_SIZE: int = 32
+    _MASK: int = (1 << WORD_SIZE) - 1
 
     # --- PRIVATE: Hashing Logic ---
 

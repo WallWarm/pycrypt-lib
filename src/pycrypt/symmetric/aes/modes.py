@@ -1,4 +1,4 @@
-from hmac import compare_digest
+from secrets import compare_digest
 from abc import ABC, abstractmethod
 from typing import Literal, Final, override
 
