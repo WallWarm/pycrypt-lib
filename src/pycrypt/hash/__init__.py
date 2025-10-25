@@ -1,3 +1,4 @@
-from .sha.variants import SHA256, SHA1
+from .sha.variants import SHA1, SHA256
+from .sha.hmac import hkdf, hmac
 
-__all__ = ["SHA256", "SHA1"]
+__all__ = ["SHA1", "SHA256", "hkdf", "hmac"]
