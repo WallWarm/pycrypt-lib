@@ -15,8 +15,8 @@ def random_message(max_len=64):
 def test_i2osp_and_os2ip_roundtrip():
     for i in range(1, 100):
         n = secrets.randbits(64)
-        b = RSAKey.i2osp(n, 8)
-        assert RSAKey.os2ip(b) == n
+        b = RSAKey._i2osp(n, 8)
+        assert RSAKey._os2ip(b) == n
         assert len(b) == 8
 
 

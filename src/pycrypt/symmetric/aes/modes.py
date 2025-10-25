@@ -191,7 +191,7 @@ class AES_GCM(_AESMode):
         plaintext, computed_tag = self._operate(ciphertext, nonce, aad, mode="decrypt")
 
         if not compare_digest(tag, computed_tag):
-            raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch.")
+            raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch")
 
         return plaintext
     

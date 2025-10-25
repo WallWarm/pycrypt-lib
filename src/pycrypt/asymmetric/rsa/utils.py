@@ -12,7 +12,7 @@ def generate_large_prime(bits: int = 1024, attempts: int = 10000) -> int:
         if isprime(candidate):
             return candidate
     raise TimeoutError(
-        f"Failed to generate prime number of length {bits} in {attempts} attempts."
+        f"Failed to generate prime number of length {bits} in {attempts} attempts"
     )
 
 
@@ -20,7 +20,7 @@ def mgf1(seed: bytes, length: int, hash=SHA256) -> bytes:
     hlen = hash.DIGEST_SIZE
 
     if length > (hlen << 32):
-        raise ValueError("mask too long")
+        raise ValueError("Mask too long")
 
     T = b""
     counter = 0
