@@ -8,7 +8,7 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.14%2B-blue?style=flat-square&logo=python" alt="Python 3.14+" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/status-beta-orange?style=flat-square" alt="Alpha" />
-  <img src="https://img.shields.io/github/actions/workflow/status/yourusername/pycrypt/tests.yml?label=tests&style=flat-square" alt="Build status" />
+  <img src="https://img.shields.io/github/actions/workflow/status/WallWarm/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
 </p>
 
 
@@ -196,7 +196,7 @@ SOFTWARE.
 ## 🌟 Cryptography Reference Standards
 
 
-- [FIPS PUB 197 – AES Standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf)
+- [FIPS PUB 197 – Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf)
 - [FIPS PUB 180-4 – Secure Hash Standard (SHS)](https://csrc.nist.gov/publications/detail/fips/180/4/final)
 - [RFC 8017 – RSA Cryptography Standard (PKCS #1 v2.2)](https://www.rfc-editor.org/rfc/rfc8017)
 - [RFC 2631 - Diffie-Hellman Key Agreement Method](https://www.rfc-editor.org/rfc/rfc2631)
