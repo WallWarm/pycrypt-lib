@@ -11,8 +11,6 @@
   <img src="https://img.shields.io/github/actions/workflow/status/WallWarm/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
 </p>
 
-
-
 > ⚠️ **Disclaimer:**
 > `pycrypt` is an **educational cryptography library**.
 > It is **not safe for production use**.
@@ -20,30 +18,28 @@
 
 > **Do not roll your own crypto** in production code. Use a [safe, audited library](https://pypi.org/project/cryptography/) that has been vetted by professionals.
 
-
-
 ## 📜 Overview
 
-`pycrypt` implements major cryptographic primitives from scratch in pure and simple Python, using minimal external libraries.
+`pycrypt` implements major cryptographic primitives **from scratch** in pure Python
+with minimal dependencies. It is designed for learners and developers interested
+in the inner workings of cryptography.
 
 Analysing the code may help in:
 
 - Learning how encryption, hashing, and key exchange algorithms work.
-- Exploring low level arithmetic operations.
-- Teaching cryptography fundamentals to students familiar with intermediate-level Python.
+- Exploring low-level arithmetic operations.
+- Teaching cryptography fundamentals to intermediate Python developers.
 
-
+**GitHub Repository:** [https://github.com/WallWarm/pycrypt-lib](<https://github.com/WallWarm/pycrypt-lib>)
 
 ## 📦 Features
 
 | Category       | Algorithm               | Description                                          |
-| -- | -- | - |
+| -------------- | ----------------------- | ---------------------------------------------------- |
 | **Asymmetric** | **RSA**                 | OAEP encryption/decryption, PSS signing/verification |
 |                | **Diffie–Hellman (DH)** | Modular exponentiation and HKDF-based key derivation |
 | **Symmetric**  | **AES**                 | ECB, CBC, CTR, and GCM modes                         |
-| **Hashing**    | **SHA-1**, **SHA-256**  | HMAC and HKDF included              |
-
-
+| **Hashing**    | **SHA-1**, **SHA-256**  | HMAC and HKDF included                               |
 
 ## 🗂️ Project Structure
 
@@ -73,15 +69,11 @@ pycrypt/
 └── main.py
 ```
 
-
-
 ## 🚀 Installation
 
 ```bash
 pip install pycrypt-lib
 ```
-
-
 
 ## 🧩 Examples
 
@@ -102,8 +94,6 @@ assert alice_shared == bob_shared
 print(f"Shared secret: {alice_shared.hex()}")
 ```
 
-
-
 ### 🔸 RSA Encryption and Signing
 
 ```python
@@ -118,8 +108,6 @@ plain = key.oaep_decrypt(cipher)
 signature = key.pss_sign(message)
 assert key.pss_verify(message, signature)
 ```
-
-
 
 ### 🔸 AES (GCM Mode)
 
@@ -137,8 +125,6 @@ plaintext = aes.decrypt(ciphertext, nonce=nonce, tag=tag)
 print(plaintext.decode())
 ```
 
-
-
 ### 🔸 SHA-256 Hash
 
 ```python
@@ -148,8 +134,6 @@ sha = SHA256()
 sha.update(b"hello world")
 print(sha.hexdigest())
 ```
-
-
 
 ## 🧠 Design Philosophy
 
@@ -161,11 +145,9 @@ print(sha.hexdigest())
 
 Understanding how cryptography works is the first step toward using it safely.
 
-
-
 ## 🪪 License
 
-**MIT License** 
+**MIT License**
 
 Copyright (c) 2025 Aravindaksha Balaji, Arnav Guntur
 
@@ -191,14 +173,9 @@ SOFTWARE.
 > This library is **not secure** for production use.
 > It is a **learning and exploration tool** only.
 
-
-
 ## 🌟 Cryptography Reference Standards
 
-
-- [FIPS PUB 197 – Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf)
-- [FIPS PUB 180-4 – Secure Hash Standard (SHS)](https://csrc.nist.gov/publications/detail/fips/180/4/final)
+- [FIPS PUB 197 – Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
+- [FIPS PUB 180-4 – Secure Hash Standard (SHS)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 - [RFC 8017 – RSA Cryptography Standard (PKCS #1 v2.2)](https://www.rfc-editor.org/rfc/rfc8017)
 - [RFC 2631 - Diffie-Hellman Key Agreement Method](https://www.rfc-editor.org/rfc/rfc2631)
-
-

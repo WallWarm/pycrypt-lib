@@ -4,10 +4,24 @@ from pycrypt.hash.sha.core import SHACore
 
 
 class SHA1(SHACore):
-    BLOCK_SIZE: int = 64
-    DIGEST_SIZE: int = 20
-    WORD_SIZE: int = 32
-    _MASK: int = (1 << WORD_SIZE) - 1
+    """SHA-1 cryptographic hash function.
+
+    Implements the SHA-1 algorithm (160-bit digest) using the core
+    SHA framework defined in :class:`SHACore`.
+
+    Example:
+        >>> sha = SHA1(b"hello world")
+        >>> sha.hexdigest()
+        '2aae6c35c94fcfb415dbe95f408b9ce91ee846ed'
+        >>> sha.update(b"!")
+        >>> sha.hexdigest()
+        '7c211433f02071597741e6ff5a8ea34789abbf43'
+    """
+
+    BLOCK_SIZE: int = 64 #: Input block size in bytes.
+    DIGEST_SIZE: int = 20 #: Output digest size in bytes.
+    WORD_SIZE: int = 32 #: Word size in bits.
+    _MASK: int = (1 << WORD_SIZE) - 1 #: Bitmask for 32-bit operations.
 
     # --- PRIVATE: Hashing Logic ---
 
@@ -80,10 +94,24 @@ class SHA1(SHACore):
 
 
 class SHA256(SHACore):
-    BLOCK_SIZE: int = 64
-    DIGEST_SIZE: int = 32
-    WORD_SIZE: int = 32
-    _MASK: int = (1 << WORD_SIZE) - 1
+    """SHA-256 cryptographic hash function.
+
+    Implements the SHA-256 algorithm (256-bit digest) using the core
+    SHA framework defined in :class:`SHACore`.
+
+    Example:
+        >>> sha = SHA256(b"hello world")
+        >>> sha.hexdigest()
+        'b94d27b9934d3e08a52e52d7da7dabfade4b988'  # truncated example
+        >>> sha.update(b"!")
+        >>> sha.hexdigest()
+        '7f83b1657ff1fc53b92dc18148a1d65dfc2d4a'  # truncated example
+    """
+
+    BLOCK_SIZE: int = 64 #: Input block size in bytes.
+    DIGEST_SIZE: int = 32 #: Output digest size in bytes.
+    WORD_SIZE: int = 32 #: Word size in bits.
+    _MASK: int = (1 << WORD_SIZE) - 1 #: Bitmask for 32-bit operations.
 
     # --- PRIVATE: Hashing Logic ---
 

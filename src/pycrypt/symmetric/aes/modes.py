@@ -13,9 +13,32 @@ from pycrypt.symmetric.aes.utils import (
 
 
 class _AESMode(ABC):
+    """Abstract base class for AES block cipher modes.
+
+    This class provides the foundation for implementing different AES modes
+    (ECB, CBC, CTR, GCM). It handles low-level AES operations and provides
+    utility functions for block handling, counter management, and XOR operations.
+
+    Attributes:
+        _aes (AESCore): The underlying AES block cipher instance.
+
+    Example:
+        >>> from pycrypt.symmetric.aes.modes import AES_ECB
+        >>> key = b"0123456789abcdef"
+        >>> aes = AES_ECB(key)
+        >>> ciphertext = aes.encrypt(b"hello world")
+        >>> aes.decrypt(ciphertext)
+        b'hello world'
+    """
+
     def __init__(self, key: bytes):
+        """Initialize an AES mode with a secret key.
+
+        Args:
+            key (bytes): The AES key (16, 24, or 32 bytes for AES-128/192/256).
+        """
         self._aes: AESCore = AESCore(key)
-        
+
     # --- Encryption / Decryption ---
 
     @abstractmethod
@@ -65,13 +88,38 @@ class _AESMode(ABC):
 
 
 class AES_ECB(_AESMode):
+    """AES in ECB (Electronic Codebook) mode.
+
+    ECB mode encrypts each 16-byte block independently. For messages that are
+    not multiples of 16 bytes, padding (e.g., PKCS7) is required. This mode
+    does not provide integrity/authentication, and identical plaintext blocks
+    produce identical ciphertext blocks.
+
+    Example:
+        >>> key = b"0123456789abcdef"
+        >>> aes = AES_ECB(key)
+        >>> plaintext = b"Secret Message"
+        >>> ct = aes.encrypt(plaintext)
+        >>> aes.decrypt(ct)
+        b'Secret Message'
+    """
+
     def __init__(self, key: bytes):
         super().__init__(key)
-        
+
     # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, pad: bool = True) -> bytes:
+        """Encrypt plaintext using AES-ECB.
+
+        Args:
+            plaintext (bytes): The data to encrypt.
+            pad (bool, optional): Whether to apply PKCS7 padding (default True).
+
+        Returns:
+            bytes: The ciphertext.
+        """
         if pad:
             plaintext = PKCS7.pad(plaintext)
         else:
@@ -83,6 +131,15 @@ class AES_ECB(_AESMode):
 
     @override
     def decrypt(self, ciphertext: bytes, *, unpad: bool = True) -> bytes:
+        """Decrypt ciphertext using AES-ECB.
+
+        Args:
+            ciphertext (bytes): The ciphertext to decrypt.
+            unpad (bool, optional): Whether to remove PKCS7 padding (default True).
+
+        Returns:
+            bytes: The decrypted plaintext.
+        """
         validate_len_multiple("Ciphertext length", ciphertext)
 
         inv = self._aes.inv_cipher
@@ -92,13 +149,38 @@ class AES_ECB(_AESMode):
 
 
 class AES_CBC(_AESMode):
+    """AES in CBC (Cipher Block Chaining) mode.
+
+    CBC mode XORs each plaintext block with the previous ciphertext block before
+    encryption. Requires a 16-byte IV (initialization vector). Padding is required
+    for non-multiple-of-block-length messages.
+
+    Example:
+        >>> key = b"0123456789abcdef"
+        >>> iv = b"abcdef0123456789"
+        >>> aes = AES_CBC(key)
+        >>> ct = aes.encrypt(b"Secret Message", iv=iv)
+        >>> aes.decrypt(ct, iv=iv)
+        b'Secret Message'
+    """
+
     def __init__(self, key: bytes):
         super().__init__(key)
-        
+
     # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, iv: bytes, pad: bool = True) -> bytes:
+        """Encrypt plaintext using AES-CBC.
+
+        Args:
+            plaintext (bytes): The data to encrypt.
+            iv (bytes): 16-byte initialization vector.
+            pad (bool, optional): Whether to apply PKCS7 padding (default True).
+
+        Returns:
+            bytes: The ciphertext.
+        """
         if pad:
             plaintext = PKCS7.pad(plaintext)
         else:
@@ -119,6 +201,16 @@ class AES_CBC(_AESMode):
 
     @override
     def decrypt(self, ciphertext: bytes, *, iv: bytes, unpad: bool = True) -> bytes:
+        """Decrypt ciphertext using AES-CBC.
+
+        Args:
+            ciphertext (bytes): The ciphertext to decrypt.
+            iv (bytes): 16-byte initialization vector used during encryption.
+            unpad (bool, optional): Whether to remove PKCS7 padding (default True).
+
+        Returns:
+            bytes: The decrypted plaintext.
+        """
         validate_len_multiple("Ciphertext length", ciphertext)
         validate_len("iv length", iv, 16)
 
@@ -139,19 +231,52 @@ class AES_CBC(_AESMode):
 
 
 class AES_CTR(_AESMode):
+    """AES in CTR (Counter) mode.
+
+    CTR mode turns AES into a stream cipher. It combines a nonce with a counter
+    to produce a keystream. Encryption and decryption are symmetric operations.
+    Does not require padding. Requires an 8-byte nonce.
+
+    Example:
+        >>> key = b"0123456789abcdef"
+        >>> nonce = b"12345678"
+        >>> aes = AES_CTR(key)
+        >>> ct = aes.encrypt(b"Secret Message", nonce=nonce)
+        >>> aes.decrypt(ct, nonce=nonce)
+        b'Secret Message'
+    """
+
     def __init__(self, key: bytes):
         super().__init__(key)
-        
+
     # --- Encryption / Decryption ---
 
     @override
     def encrypt(self, plaintext: bytes, *, nonce: bytes) -> bytes:
+        """Encrypt plaintext using AES-CTR.
+
+        Args:
+            plaintext (bytes): Data to encrypt.
+            nonce (bytes): 8-byte nonce for the counter block.
+
+        Returns:
+            bytes: Ciphertext.
+        """
         return self._operate(plaintext, nonce)
 
     @override
     def decrypt(self, ciphertext: bytes, *, nonce: bytes) -> bytes:
+        """Decrypt ciphertext using AES-CTR.
+
+        Args:
+            ciphertext (bytes): Data to decrypt.
+            nonce (bytes): 8-byte nonce used during encryption.
+
+        Returns:
+            bytes: Decrypted plaintext.
+        """
         return self._operate(ciphertext, nonce)
-        
+
     # --- PRIVATE: Helper Function ---
 
     def _operate(self, data: bytes, nonce: bytes) -> bytes:
@@ -163,7 +288,24 @@ class AES_CTR(_AESMode):
 
 
 class AES_GCM(_AESMode):
+    """AES in GCM (Galois/Counter Mode) with authentication.
+
+    Provides both confidentiality and integrity. Requires a 12-byte nonce.
+    Optional additional authenticated data (AAD) can be provided. Raises
+    `AES_GCM.GCMAuthenticationError` if authentication fails.
+
+    Example:
+        >>> key = b"0123456789abcdef"
+        >>> nonce = b"123456789012"
+        >>> aes = AES_GCM(key)
+        >>> ct, tag = aes.encrypt(b"Secret Message", nonce=nonce)
+        >>> aes.decrypt(ct, nonce=nonce, tag=tag)
+        b'Secret Message'
+    """
+
     class GCMAuthenticationError(Exception):
+        """Raised when GCM authentication fails."""
+
         pass
 
     _R: Final[int] = 0xE1000000000000000000000000000000
@@ -173,19 +315,43 @@ class AES_GCM(_AESMode):
     def __init__(self, key: bytes):
         super().__init__(key)
         self._H: Final[int] = int.from_bytes(self._aes.cipher(b"\x00" * 16), "big")
-        
+
     # --- Encryption / Decryption ---
 
     @override
     def encrypt(  # pyright: ignore[reportIncompatibleMethodOverride]
         self, plaintext: bytes, *, nonce: bytes, aad: bytes = b""
     ) -> tuple[bytes, bytes]:
+        """Encrypt and authenticate data using AES-GCM.
+
+        Args:
+            plaintext (bytes): Data to encrypt.
+            nonce (bytes): 12-byte nonce.
+            aad (bytes, optional): Additional authenticated data.
+
+        Returns:
+            tuple[bytes, bytes]: Ciphertext and 16-byte authentication tag.
+        """
         return self._operate(plaintext, nonce, aad)
 
     @override
     def decrypt(
         self, ciphertext: bytes, *, nonce: bytes, tag: bytes, aad: bytes = b""
     ) -> bytes:
+        """Decrypt and verify data using AES-GCM.
+
+        Args:
+            ciphertext (bytes): Ciphertext to decrypt.
+            nonce (bytes): 12-byte nonce used during encryption.
+            tag (bytes): 16-byte authentication tag from encryption.
+            aad (bytes, optional): Additional authenticated data.
+
+        Returns:
+            bytes: Decrypted plaintext.
+
+        Raises:
+            AES_GCM.GCMAuthenticationError: If authentication tag verification fails.
+        """
         validate_len("tag", tag, self._TAG_LENGTH)
 
         plaintext, computed_tag = self._operate(ciphertext, nonce, aad, mode="decrypt")
@@ -194,7 +360,7 @@ class AES_GCM(_AESMode):
             raise AES_GCM.GCMAuthenticationError("GCM Authentication tag mismatch")
 
         return plaintext
-    
+
     # --- PRIVATE: Helper Functions ---
 
     def _operate(

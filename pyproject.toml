@@ -1,6 +1,6 @@
 [project]
 name = "pycrypt-lib"
-version = "0.9.0"
+version = "1.0.0b1"
 description = "A pure Python implementation of cryptographic primitives, written in a clean, Pythonic, and type-safe way."
 readme = "README.md"
 authors = [
@@ -9,9 +9,9 @@ authors = [
 ]
 requires-python = ">=3.14"
 dependencies = [
-    "cryptography>=46.0.3",
     "egcd>=3.0.0",
     "primefac>=2.0.12",
+    "sphinx",
 ]
 
 [project.urls]
