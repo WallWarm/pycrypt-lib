@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../../src/"))
 project = "pycrypt"
 copyright = "2025, Aravindaksha Balaji, Arnav Guntur"
 author = "Aravindaksha Balaji, Arnav Guntur"
-release = "0.9.0"
+release = "1.0.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -52,8 +52,8 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 html_context = {
-  'display_github': True,
-  'github_user': 'WallWarm',
-  'github_repo': 'pycrypt-lib',
-  'github_version': 'main/docs/source/',
+    "display_github": True,
+    "github_user": "WallWarm",
+    "github_repo": "pycrypt-lib",
+    "github_version": "main/docs/source/",
 }
