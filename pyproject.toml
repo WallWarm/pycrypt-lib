@@ -19,6 +19,14 @@ pythonpath = ["src"]
 
 [tool.basedpyright]
 typeCheckingMode = "recommended"
+ignore = [
+    "tests/*.py"
+]
+
+[tool.ruff]
+exclude = [
+    "tests/*.py"
+]
 
 [dependency-groups]
 dev = [
