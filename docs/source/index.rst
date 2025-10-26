@@ -39,9 +39,6 @@ Use cases include:
 - Exploring low-level arithmetic operations.
 - Teaching cryptography fundamentals to intermediate Python developers.
 
-**GitHub Repository:** `https://github.com/WallWarm/pycrypt-lib <https://github.com/WallWarm/pycrypt-lib>`_
-
-
 Features
 ========
 
@@ -178,6 +175,13 @@ Copyright (c) 2025 Aravindaksha Balaji, Arnav Guntur
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
+    
+Links
+=====
+
+- `Documentation <https://pycrypt-lib.readthedocs.io/en/latest/>`_
+- `Github Repository <https://github.com/WallWarm/pycrypt-lib>`_
+- `PyPI Package <https://pypi.org/project/pycrypt-lib/>`_
 
 
 Cryptography Reference Standards

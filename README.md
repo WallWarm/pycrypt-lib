@@ -5,10 +5,11 @@
 </p>
 
 <p align="center">
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.14%2B-blue?style=flat-square&logo=python" alt="Python 3.14+" /></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9%2B-blue?style=flat-square&logo=python" alt="Python 3.9+" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" /></a>
-  <img src="https://img.shields.io/badge/status-beta-orange?style=flat-square" alt="Alpha" />
-  <img src="https://img.shields.io/github/actions/workflow/status/WallWarm/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
+  <img src="https://img.shields.io/badge/status-beta-orange?style=flat-square" alt="Beta" />
+  <img href="https://github.com/WallWarm/pycrypt-lib" src="https://img.shields.io/github/actions/workflow/status/WallWarm/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
+  <img src="https://img.shields.io/pypi/v/pycrypt-lib.svg" href="https://pypi.org/project/pycrypt-lib" alt="PyPI version"
 </p>
 
 > ⚠️ **Disclaimer:**
@@ -30,7 +31,7 @@ Analysing the code may help in:
 - Exploring low-level arithmetic operations.
 - Teaching cryptography fundamentals to intermediate Python developers.
 
-**GitHub Repository:** [https://github.com/WallWarm/pycrypt-lib](<https://github.com/WallWarm/pycrypt-lib>)
+
 
 ## 📦 Features
 
@@ -172,6 +173,11 @@ SOFTWARE.
 > ⚠️ **Note:**
 > This library is **not secure** for production use.
 > It is a **learning and exploration tool** only.
+
+## 🔗 Links
+- [Documentation](https://pycrypt-lib.readthedocs.io/en/latest/)
+- [Github Repository](https://github.com/WallWarm/pycrypt-lib)
+- [PyPI Package](https://pypi.org/project/pycrypt-lib/)
 
 ## 🌟 Cryptography Reference Standards
 

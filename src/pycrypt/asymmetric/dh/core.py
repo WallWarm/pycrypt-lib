@@ -17,6 +17,8 @@ def bytes_to_int(b: bytes) -> int:
 @dataclass(slots=True, frozen=True)
 class DHParameters:
     """Represents Diffie–Hellman (DH) group parameters.
+    
+    This class is aliased under the name :mod:`DH` for easier access.
 
     This class defines the mathematical parameters used for the
     Diffie–Hellman key exchange: the large prime modulus `p`, the generator `g`,
@@ -35,14 +37,13 @@ class DHParameters:
 
     @classmethod
     def generate_parameters(
-        cls, generator: int = 2, key_size: Literal[2048, 3072, 4096, 6144, 8192] = 2048
+        cls, key_size: Literal[2048, 3072, 4096, 6144, 8192] = 2048
     ):
         """Generate standardized Diffie–Hellman parameters.
 
         Uses predefined MODP groups from :mod:`pycrypt.asymmetric.dh.groups`.
 
         Args:
-            generator (int, optional): Generator value (default is 2).
             key_size (Literal[2048, 3072, 4096, 6144, 8192], optional):
                 The bit size of the DH group to use. Defaults to 2048.
 

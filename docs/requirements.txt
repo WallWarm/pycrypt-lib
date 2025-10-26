@@ -13,6 +13,7 @@ markupsafe==3.0.3
 packaging==25.0
 pluggy==1.6.0
 primefac==2.0.12
+-e file:///C:/Users/panch/Documents/Aravindaksha/CS%20Project/pycrypt-lib
 pygments==2.19.2
 pytest==8.4.2
 requests==2.32.5
