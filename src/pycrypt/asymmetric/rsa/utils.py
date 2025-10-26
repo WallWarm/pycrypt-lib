@@ -32,7 +32,7 @@ def mgf1(seed: bytes, length: int, hash=SHA256) -> bytes:
     return T[:length]
 
 
-def oaep_encode(m: bytes, k: int, l: bytes = b"", hash=SHA256):
+def oaep_encode(m: bytes, k: int, label: bytes = b"", hash=SHA256):
     hlen = hash.DIGEST_SIZE
 
     if k < 2 * hlen + 2:
@@ -44,7 +44,7 @@ def oaep_encode(m: bytes, k: int, l: bytes = b"", hash=SHA256):
     if mlen > max_mlen:
         raise ValueError(f"Encoding Error: message too long, can be at most {max_mlen}")
 
-    lhash = hash(l).digest()
+    lhash = hash(label).digest()
     ps = b"\x00" * (k - mlen - (2 * hlen) - 2)
     db = lhash + ps + b"\x01" + m
 
@@ -59,9 +59,9 @@ def oaep_encode(m: bytes, k: int, l: bytes = b"", hash=SHA256):
     return b"\x00" + masked_seed + masked_db
 
 
-def oaep_decode(em: bytes, k: int, l: bytes = b"", hash=SHA256):
+def oaep_decode(em: bytes, k: int, label: bytes = b"", hash=SHA256):
     hlen = hash.DIGEST_SIZE
-    computed_lhash = hash(l).digest()
+    computed_lhash = hash(label).digest()
 
     if len(em) != k or k < (2 * hlen + 2):
         raise ValueError("Decoding Error: invalid padding length")

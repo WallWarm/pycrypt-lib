@@ -29,7 +29,7 @@ class DHParameters:
 
         return cls(*GROUPS[key_size])
 
-    def generate_private_key(self, bits: int | None = None) -> DHPrivateKey:
+    def generate_private_key(self, bits: int | None = None) -> "DHPrivateKey":
         p, q = self.p, self.q
 
         if q:

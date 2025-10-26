@@ -19,6 +19,9 @@ Homepage = "https://github.com/WallWarm/pycrypt"
 Repository = "https://github.com/WallWarm/pycrypt"
 Issues = "https://github.com/WallWarm/pycrypt/issues"
 
+[tool.uv.build-backend]
+module-name = "pycrypt"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 
