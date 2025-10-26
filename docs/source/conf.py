@@ -24,7 +24,6 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
     "sphinx_rtd_theme",
-    "sphinx_rtd_dark_mode",
 ]
 
 templates_path = ["_templates"]
@@ -51,7 +50,6 @@ autodoc_inherit_docstrings = True
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
-default_dark_mode = False
 
 html_context = {
   'display_github': True,

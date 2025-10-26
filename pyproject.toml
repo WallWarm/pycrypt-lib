@@ -7,11 +7,13 @@ authors = [
     { name = "Aravindaksha Balaji", email = "aravindakshabalaji@gmail.com" },
     { name = "Arnav Guntur", email = "arnavguntur.2009@gmail.com" },
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.9"
 dependencies = [
     "egcd>=3.0.0",
     "primefac>=2.0.12",
     "sphinx",
+    "sphinx-rtd-dark-mode>=1.3.0",
+    "sphinx-rtd-theme>=3.0.2",
 ]
 
 [project.urls]
