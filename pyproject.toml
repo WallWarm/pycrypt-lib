@@ -1,7 +1,7 @@
 [project]
-name = "pycrypt"
-version = "0.1.0"
-description = ""
+name = "pycrypt-lib"
+version = "0.9.0"
+description = "A pure Python implementation of cryptographic primitives, written in a clean, Pythonic, and type-safe way."
 readme = "README.md"
 authors = [
     { name = "Aravindaksha Balaji", email = "aravindakshabalaji@gmail.com" },
@@ -13,6 +13,11 @@ dependencies = [
     "egcd>=3.0.0",
     "primefac>=2.0.12",
 ]
+
+[project.urls]
+Homepage = "https://github.com/WallWarm/pycrypt"
+Repository = "https://github.com/WallWarm/pycrypt"
+Issues = "https://github.com/WallWarm/pycrypt/issues"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
