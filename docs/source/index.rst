@@ -33,12 +33,6 @@ Overview
 with minimal dependencies. It is designed for learners and developers interested
 in the inner workings of cryptography.
 
-Use cases include:
-
-- Learning how encryption, hashing, and key exchange algorithms work.
-- Exploring low-level arithmetic operations.
-- Teaching cryptography fundamentals to intermediate Python developers.
-
 Features
 ========
 
@@ -139,17 +133,6 @@ SHA-256 Hashing
     sha.update(b"hello world")
     print(sha.hexdigest())
 
-
-Design Philosophy
-=================
-
-- **Pure Python** - minimal external dependencies
-- **Readable and modular** - core logic and implementation are seperated for clarity
-- **Type-safe** - uses `typing` and `ruff` for static checks
-- **Educational focus** - clarity > performance
-- **Standards-aligned** - based on official cryptographic specs
-
-
 License
 =======
 
@@ -176,7 +159,7 @@ Copyright (c) 2025 Aravindaksha Balaji, Arnav Guntur
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-    
+
 Links
 =====
 

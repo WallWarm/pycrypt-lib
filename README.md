@@ -25,14 +25,6 @@
 with minimal dependencies. It is designed for learners and developers interested
 in the inner workings of cryptography.
 
-Analysing the code may help in:
-
-- Learning how encryption, hashing, and key exchange algorithms work.
-- Exploring low-level arithmetic operations.
-- Teaching cryptography fundamentals to intermediate Python developers.
-
-
-
 ## 📦 Features
 
 | Category       | Algorithm               | Description                                          |
@@ -136,16 +128,6 @@ sha.update(b"hello world")
 print(sha.hexdigest())
 ```
 
-## 🧠 Design Philosophy
-
-- **Pure Python** - minimal external dependencies
-- **Readable and modular** - each algorithm is split into core and implementation parts
-- **Type-safe** - uses `typing` and `ruff` for static checks
-- **Educational focus** - clarity > performance
-- **Standards-aligned** - based on official cryptographic specs
-
-Understanding how cryptography works is the first step toward using it safely.
-
 ## 🪪 License
 
 **MIT License**
@@ -177,6 +159,7 @@ SOFTWARE.
 > It is a **learning and exploration tool** only.
 
 ## 🔗 Links
+
 - [Documentation](https://pycrypt-lib.readthedocs.io/en/latest/)
 - [Github Repository](https://github.com/WallWarm/pycrypt-lib)
 - [PyPI Package](https://pypi.org/project/pycrypt-lib/)

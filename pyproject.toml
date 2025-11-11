@@ -1,6 +1,6 @@
 [project]
 name = "pycrypt-lib"
-version = "1.0.2"
+version = "1.0.3"
 description = "A pure Python implementation of cryptographic primitives, written in a clean, Pythonic, and type-safe way."
 readme = "README.md"
 authors = [
