@@ -138,7 +138,7 @@ License
 
 **MIT License**
 
-Copyright (c) 2025 Aravindaksha Balaji, Arnav Guntur
+Copyright (c) 2025 Aravindaksha Balaji
 
 .. code-block:: text
 
@@ -164,7 +164,7 @@ Links
 =====
 
 - `Documentation <https://pycrypt-lib.readthedocs.io/en/latest/>`_
-- `Github Repository <https://github.com/WallWarm/pycrypt-lib>`_
+- `Github Repository <https://github.com/aravindakshabalaji/pycrypt-lib>`_
 - `PyPI Package <https://pypi.org/project/pycrypt-lib/>`_
 
 

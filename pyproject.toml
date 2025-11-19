@@ -1,11 +1,10 @@
 [project]
 name = "pycrypt-lib"
-version = "1.0.3"
+version = "1.0.4"
 description = "A pure Python implementation of cryptographic primitives, written in a clean, Pythonic, and type-safe way."
 readme = "README.md"
 authors = [
     { name = "Aravindaksha Balaji", email = "aravindakshabalaji@gmail.com" },
-    { name = "Arnav Guntur", email = "arnavguntur.2009@gmail.com" },
 ]
 requires-python = ">=3.9"
 dependencies = [
@@ -15,8 +14,8 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://pycrypt-lib.readthedocs.io/en/latest/"
-Repository = "https://github.com/WallWarm/pycrypt"
-Issues = "https://github.com/WallWarm/pycrypt/issues"
+Repository = "https://github.com/aravindakshabalaji/pycrypt-lib"
+Issues = "https://github.com/aravindakshabalaji/pycrypt-lib/issues"
 
 [tool.uv.build-backend]
 module-name = "pycrypt"

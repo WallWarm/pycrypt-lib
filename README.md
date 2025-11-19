@@ -8,7 +8,7 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.9%2B-blue?style=flat-square&logo=python" alt="Python 3.9+" /></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/status-release-green?style=flat-square" alt="Release" />
-  <img href="https://github.com/WallWarm/pycrypt-lib" src="https://img.shields.io/github/actions/workflow/status/WallWarm/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
+  <img href="https://github.com/aravindakshabalaji/pycrypt-lib" src="https://img.shields.io/github/actions/workflow/status/aravindakshabalaji/pycrypt-lib/.github/workflows/python-package.yml?label=tests&style=flat-square" alt="Build status" />
   <img src="https://img.shields.io/pypi/v/pycrypt-lib.svg" href="https://pypi.org/project/pycrypt-lib" alt="PyPI version"
 </p>
 
@@ -132,7 +132,7 @@ print(sha.hexdigest())
 
 **MIT License**
 
-Copyright (c) 2025 Aravindaksha Balaji, Arnav Guntur
+Copyright (c) 2025 Aravindaksha Balaji
 
 ```
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -161,7 +161,7 @@ SOFTWARE.
 ## 🔗 Links
 
 - [Documentation](https://pycrypt-lib.readthedocs.io/en/latest/)
-- [Github Repository](https://github.com/WallWarm/pycrypt-lib)
+- [Github Repository](https://github.com/aravindakshabalaji/pycrypt-lib)
 - [PyPI Package](https://pypi.org/project/pycrypt-lib/)
 
 ## 🌟 Cryptography Reference Standards
