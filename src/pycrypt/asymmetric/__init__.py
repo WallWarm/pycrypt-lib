@@ -1,4 +1,6 @@
-from .rsa.core import RSAKey
 from .dh.core import DHParameters, DHPrivateKey, DHPublicKey
+from .rsa.core import RSAKey
 
-__all__ = ["RSAKey", "DHParameters", "DHPrivateKey", "DHPublicKey"]
+DH = DHParameters
+
+__all__ = ["DHParameters", "DHPrivateKey", "DHPublicKey", "DH", "RSAKey"]
