@@ -18,10 +18,10 @@ class SHA1(SHACore):
         '7c211433f02071597741e6ff5a8ea34789abbf43'
     """
 
-    BLOCK_SIZE: int = 64 #: Input block size in bytes.
-    DIGEST_SIZE: int = 20 #: Output digest size in bytes.
-    WORD_SIZE: int = 32 #: Word size in bits.
-    _MASK: int = (1 << WORD_SIZE) - 1 #: Bitmask for 32-bit operations.
+    BLOCK_SIZE: int = 64  #: Input block size in bytes.
+    DIGEST_SIZE: int = 20  #: Output digest size in bytes.
+    WORD_SIZE: int = 32  #: Word size in bits.
+    _MASK: int = (1 << WORD_SIZE) - 1  #: Bitmask for 32-bit operations.
 
     # --- PRIVATE: Hashing Logic ---
 
@@ -51,7 +51,9 @@ class SHA1(SHACore):
             b = a
             a = temp
 
-        self._hash = [(x + y) & self._MASK for x, y in zip(self._hash, [a, b, c, d, e])]
+        self._hash: list[int] = [
+            (x + y) & self._MASK for x, y in zip(self._hash, [a, b, c, d, e])
+        ]
 
     @override
     def _schedule_message(self, block: bytes) -> list[int]:
@@ -108,10 +110,10 @@ class SHA256(SHACore):
         '7f83b1657ff1fc53b92dc18148a1d65dfc2d4a'  # truncated example
     """
 
-    BLOCK_SIZE: int = 64 #: Input block size in bytes.
-    DIGEST_SIZE: int = 32 #: Output digest size in bytes.
-    WORD_SIZE: int = 32 #: Word size in bits.
-    _MASK: int = (1 << WORD_SIZE) - 1 #: Bitmask for 32-bit operations.
+    BLOCK_SIZE: int = 64  #: Input block size in bytes.
+    DIGEST_SIZE: int = 32  #: Output digest size in bytes.
+    WORD_SIZE: int = 32  #: Word size in bits.
+    _MASK: int = (1 << WORD_SIZE) - 1  #: Bitmask for 32-bit operations.
 
     # --- PRIVATE: Hashing Logic ---
 
@@ -135,7 +137,7 @@ class SHA256(SHACore):
                 (T1 + T2) & self._MASK,
             )
 
-        self._hash = [
+        self._hash: list[int] = [
             (x + y) & self._MASK for x, y in zip(self._hash, [a, b, c, d, e, f, g, h])
         ]
 

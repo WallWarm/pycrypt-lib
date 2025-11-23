@@ -7,7 +7,7 @@ def hmac(key: bytes, message: bytes, hash=SHA256) -> bytes:
 
     HMAC combines a secret key with a cryptographic hash function to produce
     a message authentication code, which can be used for integrity and authenticity checks.
-    
+
     Example:
         >>> key = b"secret"
         >>> msg = b"hello world"
@@ -44,7 +44,7 @@ def hkdf(
 
     HKDF extracts a pseudorandom key from input keying material and expands
     it to the desired output length using HMAC.
-    
+
     Example:
         >>> ikm = b"input key material"
         >>> hkdf(ikm, 32).hex()

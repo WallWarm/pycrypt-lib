@@ -1,7 +1,7 @@
 import pytest
 import secrets
 
-from pycrypt.asymmetric import RSAKey  # adjust import path if needed
+from pycrypt.asymmetric import RSAKey
 from pycrypt.hash import SHA256
 from pycrypt.asymmetric.rsa.utils import generate_large_prime
 from egcd import egcd
@@ -144,18 +144,16 @@ def test_pss_different_salt_lengths():
 def test_multiple_roundtrips(bits):
     key = RSAKey.generate(bits)
     hlen = SHA256.DIGEST_SIZE
-    max_msg_len = key.k - 2 * hlen - 2  # OAEP max message length
+    max_msg_len = key.k - 2 * hlen - 2
 
     for _ in range(5):
-        mlen = min(64, max_msg_len)  # ensure message fits OAEP
+        mlen = min(64, max_msg_len)
         m = random_message(mlen)
 
-        # OAEP encrypt/decrypt
         ct = key.oaep_encrypt(m)
         pt = key.oaep_decrypt(ct)
         assert pt == m
 
-        # PSS sign/verify
         sig = key.pss_sign(m)
         assert key.pss_verify(m, sig)
 

@@ -1,4 +1,5 @@
 from secrets import compare_digest, randbits, token_bytes
+
 from primefac import isprime
 
 from pycrypt.hash import SHA256
@@ -7,7 +8,6 @@ from pycrypt.utils import xor_bytes
 
 def generate_large_prime(bits: int = 1024, attempts: int = 10000) -> int:
     for _ in range(attempts):
-        # randbits may produce values with MSB unset; force MSB and LSB (odd)
         candidate = randbits(bits) | (1 << (bits - 1)) | 1
         if isprime(candidate):
             return candidate
@@ -22,14 +22,14 @@ def mgf1(seed: bytes, length: int, hash=SHA256) -> bytes:
     if length > (hlen << 32):
         raise ValueError("Mask too long")
 
-    T = b""
+    t = b""
     counter = 0
-    while len(T) < length:
+    while len(t) < length:
         c = int.to_bytes(counter, 4, "big")
-        T += hash(seed + c).digest()
+        t += hash(seed + c).digest()
         counter += 1
 
-    return T[:length]
+    return t[:length]
 
 
 def oaep_encode(m: bytes, k: int, label: bytes = b"", hash=SHA256):

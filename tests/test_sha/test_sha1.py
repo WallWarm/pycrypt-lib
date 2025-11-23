@@ -1,4 +1,3 @@
-# tests/test_sha1.py
 import hashlib
 import pytest
 from pycrypt.hash import SHA1

@@ -1,8 +1,7 @@
-from secrets import compare_digest
 from abc import ABC, abstractmethod
-from typing import Literal, Final, override
+from secrets import compare_digest
+from typing import Final, Literal, override
 
-from pycrypt.utils import PKCS7, xor_bytes
 from pycrypt.symmetric.aes.core import AESCore
 from pycrypt.symmetric.aes.utils import (
     inc_counter,
@@ -10,6 +9,7 @@ from pycrypt.symmetric.aes.utils import (
     validate_len,
     validate_len_multiple,
 )
+from pycrypt.utils import PKCS7, xor_bytes
 
 
 class _AESMode(ABC):

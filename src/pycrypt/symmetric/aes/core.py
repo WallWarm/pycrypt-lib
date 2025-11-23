@@ -1,13 +1,15 @@
 from typing import Final
 
-from pycrypt.utils import xor_bytes
 from pycrypt.symmetric.aes.utils import (
-    validate_len,
     GF_MUL_TABLES as _GMT,
+)
+from pycrypt.symmetric.aes.utils import (
     INV_SBOX,
     RCON,
     SBOX,
+    validate_len,
 )
+from pycrypt.utils import xor_bytes
 
 
 class AESCore:

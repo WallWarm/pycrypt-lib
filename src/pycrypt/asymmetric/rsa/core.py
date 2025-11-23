@@ -2,7 +2,7 @@ from typing import Literal, Self
 
 from egcd import egcd
 
-from pycrypt.asymmetric.rsa.asn1 import (
+from pycrypt.asymmetric.rsa.keyformat import (
     pem_to_priv_key,
     pem_to_pub_key,
     priv_key_to_pem,

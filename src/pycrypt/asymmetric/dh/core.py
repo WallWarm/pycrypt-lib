@@ -2,8 +2,14 @@ from dataclasses import dataclass
 from secrets import randbelow
 from typing import Literal, Self
 
-from pycrypt.hash import hkdf
 from pycrypt.asymmetric.dh.groups import GROUPS
+from pycrypt.asymmetric.dh.keyformat import (
+    pem_to_priv_key,
+    pem_to_pub_key,
+    priv_key_to_pem,
+    pub_key_to_pem,
+)
+from pycrypt.hash import hkdf
 
 
 def int_to_bytes(i: int) -> bytes:
@@ -17,7 +23,7 @@ def bytes_to_int(b: bytes) -> int:
 @dataclass(slots=True, frozen=True)
 class DHParameters:
     """Represents Diffie–Hellman (DH) group parameters.
-    
+
     This class is aliased under the name :mod:`DH` for easier access.
 
     This class defines the mathematical parameters used for the
@@ -99,8 +105,8 @@ class DHPublicKey:
         """
         return int_to_bytes(self.y)
 
-    @staticmethod
-    def from_bytes(b: bytes, params: DHParameters) -> Self:
+    @classmethod
+    def from_bytes(cls, b: bytes, params: DHParameters) -> Self:
         """Deserialize a public key from bytes.
 
         Args:
@@ -110,7 +116,34 @@ class DHPublicKey:
         Returns:
             DHPublicKey: The reconstructed public key object.
         """
-        return DHPublicKey(bytes_to_int(b), params)
+        return cls(bytes_to_int(b), params)
+
+    def export_key(self) -> str:
+        """Exports the DH public key in PEM format.
+
+        Returns:
+            str: The PEM-encoded DH public key.
+        """
+        return pub_key_to_pem(self.params.p, self.params.g, self.y)
+
+    @classmethod
+    def import_key(cls, pem: str) -> Self:
+        """Imports a DH public key from a PEM-formatted string.
+
+        Args:
+            pem (str): The PEM-encoded DH public key.
+
+        Returns:
+            DHPublicKey: A DHPublicKey instance initialized with the imported key.
+
+        Raises:
+            ValueError: If the PEM cannot be parsed as a valid DH public key.
+        """
+        try:
+            key = pem_to_pub_key(pem)
+            return cls(key["y"], DHParameters(key["p"], key["g"]))
+        except Exception:
+            raise ValueError("Could not parse PEM as public key")
 
 
 class DHPrivateKey:
@@ -123,8 +156,8 @@ class DHPrivateKey:
             x (int): The private scalar value.
             params (DHParameters): The DH parameter set used.
         """
-        self.x = x
-        self.params = params
+        self.x: int = x
+        self.params: DHParameters = params
 
     def public_key(self) -> DHPublicKey:
         """Compute the public key corresponding to this private key.
@@ -136,7 +169,7 @@ class DHPrivateKey:
 
     def exchange(
         self,
-        peer_public: "DHPublicKey",
+        peer_public: DHPublicKey,
         *,
         info: bytes = b"",
         length: int = 32,
@@ -165,15 +198,34 @@ class DHPrivateKey:
         except Exception:
             pass
 
-    def _validate_peer(self, peer_y: int) -> None:
-        """Validate the peer’s public key value.
+    def export_key(self) -> str:
+        """Exports the DH private key in PEM format.
+
+        Returns:
+            str: The PEM-encoded DH private key.
+        """
+        return priv_key_to_pem(self.params.p, self.params.g, self.x)
+
+    @classmethod
+    def import_key(cls, pem: str) -> Self:
+        """Imports a DH private key from a PEM-formatted string.
 
         Args:
-            peer_y (int): The peer's public key integer.
+            pem (str): The PEM-encoded DH private key.
+
+        Returns:
+            DHPrivateKey: A DHPrivateKey instance initialized with the imported key.
 
         Raises:
-            ValueError: If the peer's public value is invalid or not in subgroup.
+            ValueError: If the PEM cannot be parsed as a valid DH private key.
         """
+        try:
+            key = pem_to_priv_key(pem)
+            return cls(key["x"], DHParameters(key["p"], key["g"]))
+        except Exception:
+            raise ValueError("Could not parse PEM as private key")
+
+    def _validate_peer(self, peer_y: int) -> None:
         p, q = self.params.p, self.params.q
 
         if not (2 <= peer_y <= p - 2):
@@ -183,17 +235,6 @@ class DHPrivateKey:
             raise ValueError("Peer public not in subgroup defined by q")
 
     def _compute_raw_shared(self, peer_public: DHPublicKey) -> int:
-        """Compute the raw shared secret without KDF.
-
-        Args:
-            peer_public (DHPublicKey): The peer’s public key.
-
-        Returns:
-            int: The raw shared integer value.
-
-        Raises:
-            ValueError: If the parameters mismatch or the peer key is invalid.
-        """
         if (
             peer_public.params.p != self.params.p
             or peer_public.params.g != self.params.g
