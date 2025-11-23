@@ -1,4 +1,3 @@
-# tests/test_sha256.py
 import hashlib
 import pytest
 
