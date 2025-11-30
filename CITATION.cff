@@ -1,0 +1,25 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: pycrypt-lib
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Aravindaksha Balaji
+    email: aravindakshabalaji@gmail.com
+identifiers:
+  - type: url
+    value: 'https://https://pypi.org/project/pycrypt-lib/'
+    description: PyPI package
+repository-code: 'https://github.com/aravindakshabalaji/pycrypt-lib/'
+url: 'https://pycrypt-lib.readthedocs.io/en/latest/'
+abstract: >-
+  A pure Python implementation of cryptographic primitives,
+  written in a clean, Pythonic, and type-safe way.
+keywords:
+  - cryptography
+  - python
+license: MIT
