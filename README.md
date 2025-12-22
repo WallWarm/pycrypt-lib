@@ -1,4 +1,4 @@
-<h1 align="center">🔐 pycrypt</h1>
+<h1 align="center">pycrypt</h1>
 
 <p align="center">
   <em>A pure Python implementation of cryptographic primitives, written in a clean, Pythonic, and type-safe way.</em>
@@ -19,13 +19,13 @@
 
 > **Do not roll your own crypto** in production code. Use a [safe, audited library](https://pypi.org/project/cryptography/) that has been vetted by professionals.
 
-## 📜 Overview
+## Overview
 
 `pycrypt` implements major cryptographic primitives **from scratch** in pure Python
 with minimal dependencies. It is designed for learners and developers interested
 in the inner workings of cryptography.
 
-## 📦 Features
+## Features
 
 | Category       | Algorithm               | Description                                          |
 | -------------- | ----------------------- | ---------------------------------------------------- |
@@ -34,7 +34,7 @@ in the inner workings of cryptography.
 | **Symmetric**  | **AES**                 | ECB, CBC, CTR, and GCM modes                         |
 | **Hashing**    | **SHA-1**, **SHA-256**  | HMAC and HKDF included                               |
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 pycrypt/
@@ -64,15 +64,15 @@ pycrypt/
 └── main.py
 ```
 
-## 🚀 Installation
+## Installation
 
 ```bash
 pip install pycrypt-lib
 ```
 
-## 🧩 Examples
+## Examples
 
-### 🔸 Diffie–Hellman (DH) Key Exchange
+### Diffie–Hellman (DH) Key Exchange
 
 ```python
 from pycrypt.asymmetric import DH
@@ -89,7 +89,7 @@ assert alice_shared == bob_shared
 print(f"Shared secret: {alice_shared.hex()}")
 ```
 
-### 🔸 RSA Encryption and Signing
+### RSA Encryption and Signing
 
 ```python
 from pycrypt.asymmetric import RSAKey
@@ -104,7 +104,7 @@ signature = key.pss_sign(message)
 assert key.pss_verify(message, signature)
 ```
 
-### 🔸 AES (GCM Mode)
+### AES (GCM Mode)
 
 ```python
 from secrets import token_bytes
@@ -120,7 +120,7 @@ plaintext = aes.decrypt(ciphertext, nonce=nonce, tag=tag)
 print(plaintext.decode())
 ```
 
-### 🔸 SHA-256 Hash
+### SHA-256 Hash
 
 ```python
 from pycrypt.hash import SHA256
@@ -130,43 +130,23 @@ sha.update(b"hello world")
 print(sha.hexdigest())
 ```
 
-## 🪪 License
+## License
 
-**MIT License**
+`pycrypt` is licensed under the **MIT License**.
 
-Copyright (c) 2025 Aravindaksha Balaji
-
-```
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+See [LICENSE](LICENSE) for the full text.
 
 > ⚠️ **Note:**
 > This library is **not secure** for production use.
 > It is a **learning and exploration tool** only.
 
-## 🔗 Links
+## Links
 
 - [Documentation](https://pycrypt-lib.readthedocs.io/en/latest/)
 - [Github Repository](https://github.com/aravindakshabalaji/pycrypt-lib)
 - [PyPI Package](https://pypi.org/project/pycrypt-lib/)
 
-## 🌟 Cryptography Reference Standards
+## Cryptography Reference Standards
 
 - [FIPS PUB 197 – Advanced Encryption Standard (AES)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf)
 - [FIPS PUB 180-4 – Secure Hash Standard (SHS)](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
